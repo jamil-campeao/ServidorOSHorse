@@ -23,7 +23,8 @@ var
 
 implementation
 
-uses Horse, Horse.Jhonson, Horse.CORS, HORSE.OctetStream, HORSE.Upload;
+uses Horse, Horse.Jhonson, Horse.CORS, HORSE.OctetStream, HORSE.Upload,
+Controllers.Usuario;
 
 {$R *.fmx}
 
@@ -33,6 +34,9 @@ begin
   THorse.Use(CORS);
   THorse.Use(OctetStream);
   THorse.Use(Upload);
+
+  {Registrar Rotas}
+  Controllers.Usuario.fRegistrarRotas;
 
 
   THorse.Listen(9000);

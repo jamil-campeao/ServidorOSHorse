@@ -3,7 +3,8 @@ program GerencialOS;
 uses
   System.StartUpCopy,
   FMX.Forms,
-  UnPrincipal in 'Servidor\UnPrincipal.pas' {frmPrincipal};
+  UnPrincipal in 'Servidor\UnPrincipal.pas' {frmPrincipal},
+  Controllers.Usuario in 'Controller\Controllers.Usuario.pas';
 
 {$R *.res}
 
