@@ -9,6 +9,7 @@ procedure RegistrarRotas;
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure Login(Req: THorseRequest; Res: THorseResponse);
 procedure Push(Req: THorseRequest; Res: THorseResponse);
+procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -18,6 +19,10 @@ begin
   THorse.Post('/usuarios/login', Login);
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSecret, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Post('/usuarios/push', Push);
+
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Put('/usuarios', EditarUsuario);
+
 end;
 
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -120,4 +125,31 @@ begin
   end;
 end;
 
+procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal        : TDMGlobal;
+  vNome           : String;
+  vLogin          : String;
+  vCodUsuario     : Integer;
+  vBody, vJsonRet : TJsonObject;
+begin
+  try
+    try
+      DmGlobal    := TDMGlobal.Create(Nil);
+
+      vCodUsuario := fGetUsuarioRequest(Req);
+      vBody       := Req.Body<TJSONObject>;
+      vNome       := vBody.GetValue<string>('nome','');
+      vLogin      := vBody.GetValue<string>('login','');
+
+      vJsonRet    := DMGlobal.fEditarUsuario(vCodUsuario, vNome, vLogin);
+
+      Res.Send<TJsonObject>(vJSonRet).Status(200);
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
 end.

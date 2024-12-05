@@ -17,11 +17,14 @@ type
     procedure DMBeforeConnect(Sender: TObject);
   private
     procedure fCarregaConfigDB(pConexao: TFDConnection);
+    procedure fValidaLoginUsuario(pLogin: string; var vSQLQuery: TFDQuery; pEditando: Boolean; pCodUsuario: Integer = 0);
     { Private declarations }
   public
     function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
     function fInserirUsuario(pNomeUsuario, pLogin, pSenha: String): TJsonObject;
     function fPush(pCodUsuario: Integer; pTokenPush: String) : TJSONObject;
+    function fEditarUsuario(pCodUsuario: Integer; pNome,
+      pLogin: String): TJSONObject;
 
     { Public declarations }
   end;
@@ -127,6 +130,8 @@ begin
     vSQLQueryInsert.SQL.Clear;
     vSQLQuerySelect.SQL.Clear;
 
+    fValidaLoginUsuario(pLogin, vSQLQuerySelect, False); //Validação de Login já existente
+
     vSQLQuerySelect.SQL.Text := ' SELECT MAX(USU_CODIGO) AS USU_CODIGO FROM USUARIO ';
     vSQLQuerySelect.Open;
 
@@ -179,5 +184,56 @@ begin
   end;
 end;
 
+function TDMGlobal.fEditarUsuario(pCodUsuario: Integer; pNome, pLogin: String): TJSONObject;
+var
+  vSQLQuery : TFDQuery;
+begin
+  if (pNome.IsEmpty) or (pLogin.IsEmpty) then
+    raise Exception.Create('Informe o nome e o login do usuário');
+  try
+    vSQLQuery := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+
+    fValidaLoginUsuario(pLogin, vSQLQuery, True, pCodUsuario);
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' UPDATE USUARIO                   '+
+                          ' SET USU_NOME = :USU_NOME,        '+
+                          ' USU_LOGIN    = :USU_LOGIN        '+
+                          ' WHERE USU_CODIGO = :USU_CODIGO   '+
+                          ' RETURNING USU_CODIGO             ';
+
+    vSQLQuery.ParamByName('USU_NOME').AsString    := pNome;
+    vSQLQuery.ParamByName('USU_LOGIN').AsString   := pLogin;
+    vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+
+end;
+
+procedure TDMGlobal.fValidaLoginUsuario(pLogin: string; var vSQLQuery: TFDQuery; pEditando: Boolean; pCodUsuario: Integer = 0);
+begin
+  //Validação do login
+  vSQLQuery.SQL.Clear;
+  vSQLQuery.SQL.Text := ' SELECT USU_CODIGO            ' +
+                        ' FROM USUARIO                 ' +
+                        ' WHERE USU_LOGIN = :USU_LOGIN ';
+  if pEditando then
+  begin
+    vSQLQuery.SQL.Add(' AND USU_CODIGO <> :USU_CODIGO');
+    vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+  end;
+
+  vSQLQuery.ParamByName('USU_LOGIN').AsString := pLogin;
+
+  vSQLQuery.Open;
+  if vSQLQuery.RecordCount > 0 then
+    raise Exception.Create('O login informado está em uso por outra conta de usuário');
+end;
 
 end.
