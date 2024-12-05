@@ -2,8 +2,8 @@ unit Controllers.Usuario;
 
 interface
 
-uses Horse, Horse.Jhonson, Horse.CORS, System.SysUtils,
-System.JSON, Horse.JWT, DM.Global, Controllers.Auth;
+uses Horse, Horse.Jhonson, Horse.CORS, System.SysUtils, DM.Global,
+System.JSON, Controllers.Auth, Horse.JWT;
 
 procedure RegistrarRotas;
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -11,6 +11,7 @@ procedure Login(Req: THorseRequest; Res: THorseResponse);
 procedure Push(Req: THorseRequest; Res: THorseResponse);
 procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
+procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -24,8 +25,11 @@ begin
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Put('/usuarios', EditarUsuario);
 
-    THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Put('/usuarios/senha', EditarSenha);
+
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Get('/usuarios/horario', ObterDataServidor);
 
 end;
 
@@ -182,4 +186,8 @@ begin
   end;
 end;
 
+procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
+begin
+  Res.Send(FormatDateTime('yyyy-mm-dd hh:nn:ss', now)).Status(200);
+end;
 end.
