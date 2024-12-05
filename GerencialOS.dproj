@@ -265,6 +265,7 @@
         </DCCReference>
         <DCCReference Include="UnitsTerceiros\uMD5.pas"/>
         <DCCReference Include="Controller\Controllers.Auth.pas"/>
+        <DCCReference Include="Controller\Controllers.Notificacao.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

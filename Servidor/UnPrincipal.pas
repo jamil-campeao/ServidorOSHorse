@@ -24,7 +24,7 @@ var
 implementation
 
 uses Horse, Horse.Jhonson, Horse.CORS, HORSE.OctetStream, HORSE.Upload,
-Controllers.Usuario;
+Controllers.Usuario, Controllers.Notificacao;
 
 {$R *.fmx}
 
@@ -37,6 +37,7 @@ begin
 
   {Registrar Rotas}
   Controllers.Usuario.RegistrarRotas;
+  Controllers.Notificacao.RegistrarRotas;
 
 
   THorse.Listen(9000);

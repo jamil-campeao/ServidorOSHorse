@@ -26,6 +26,7 @@ type
     function fEditarUsuario(pCodUsuario: Integer; pNome,
       pLogin: String): TJSONObject;
     function fEditarSenha(pCodUsuario: Integer; pSenha: String): TJSONObject;
+    function fListarNotificacoes(pCodUsuario: Integer): TJSONArray;
 
     { Public declarations }
   end;
@@ -277,5 +278,52 @@ begin
   end;
 
 end;
+
+function TDMGlobal.fListarNotificacoes(pCodUsuario: Integer) : TJSONArray;
+var
+  vSQLQuerySelect  : TFDQuery;
+  vSQLQueryInsert  : TFDQuery;
+begin
+  try
+    vSQLQuerySelect            := TFDQuery.Create(nil);
+    vSQLQueryInsert            := TFDQuery.Create(nil);
+    vSQLQuerySelect.Connection := DM;
+    vSQLQueryInsert.Connection := DM;
+
+    vSQLQuerySelect.SQL.Clear;
+    vSQLQuerySelect.SQL.Text := ' SELECT                       '+
+                                ' NOT_CODIGO,                  '+
+                                ' NOT_DATA,                    '+
+                                ' NOT_TITULO,                  '+
+                                ' NOT_TEXTO                    '+
+                                ' FROM NOTIFICACAO             '+
+                                ' WHERE NOT_IND_LIDO = ''N''   '+
+                                ' AND USU_CODIGO = :USU_CODIGO ';
+
+    vSQLQuerySelect.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+
+    vSQLQuerySelect.Open;
+
+    Result := vSQLQuerySelect.ToJSONArray;
+
+    //Marca as mensagens como lidas...
+    vSQLQueryInsert.SQL.Clear;
+    vSQLQueryInsert.SQL.Text :=  ' UPDATE NOTIFICACAO            '+
+                                 ' SET NOT_IND_LIDO    = ''S''   '+
+                                 ' WHERE NOT_IND_LIDO  = ''N''   '+
+                                 ' AND USU_CODIGO = :USU_CODIGO  ';
+
+    vSQLQueryInsert.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+
+    vSQLQueryInsert.ExecSQL;
+
+  finally
+    FreeAndNil(vSQLQuerySelect);
+    FreeAndNil(vSQLQueryInsert);
+  end;
+
+end;
+
+
 
 end.
