@@ -20,6 +20,7 @@ type
     { Private declarations }
   public
     function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
+    function fInserirUsuario(pNomeUsuario, pLogin, pSenha: String): TJsonObject;
 
     { Public declarations }
   end;
@@ -94,7 +95,7 @@ begin
 
     vSQLQuery.SQL.Text := ' SELECT                         '+
                           ' USU_CODIGO,                    '+
-                          ' USU_NOME                       '+
+                          ' USU_LOGIN                      '+
                           ' FROM USUARIO                   '+
                           ' WHERE USU_CODIGO = :USU_CODIGO '+
                           ' AND USU_SENHA =   :SENHA       ';
@@ -110,5 +111,45 @@ begin
   end;
 
 end;
+
+function TDMGlobal.fInserirUsuario(pNomeUsuario, pLogin, pSenha: String): TJsonObject;
+var
+  vSQLQueryInsert : TFDQuery;
+  vSQLQuerySelect : TFDQuery;
+begin
+  vSQLQueryInsert := TFDQuery.Create(nil);
+  vSQLQuerySelect := TFDQuery.Create(nil);
+  try
+    vSQLQueryInsert.Connection := DM;
+    vSQLQuerySelect.Connection := DM;
+
+    vSQLQueryInsert.SQL.Clear;
+    vSQLQuerySelect.SQL.Clear;
+
+    vSQLQuerySelect.SQL.Text := ' SELECT MAX(USU_CODIGO) AS USU_CODIGO FROM USUARIO ';
+    vSQLQuerySelect.Open;
+
+    vSQLQueryInsert.SQL.Text := ' INSERT INTO USUARIO                                           '+
+                                ' (USU_CODIGO, USU_NOME, USU_LOGIN, USU_SENHA, EMP_CODIGO)      '+
+                                ' VALUES                                                        '+
+                                ' (:USU_CODIGO, :USU_NOME, :USU_LOGIN, :USU_SENHA, :EMP_CODIGO) '+
+                                ' RETURNING USU_CODIGO                                          ';
+
+    vSQLQueryInsert.ParamByName('USU_CODIGO').AsInteger  := vSQLQuerySelect.FieldByName('USU_CODIGO').AsInteger + 1;
+    vSQLQueryInsert.ParamByName('USU_NOME').AsString     := pNomeUsuario;
+    vSQLQueryInsert.ParamByName('USU_LOGIN').AsString    := pLogin;
+    vSQLQueryInsert.ParamByName('USU_SENHA').AsString    := pSenha;
+    vSQLQueryInsert.ParamByName('EMP_CODIGO').AsInteger  := 1; {Estou setando fixo temporariamente, para
+                                                                decidir depois como irá ser feito essa parte da empresa}
+
+    vSQLQueryInsert.Open;
+
+    Result := vSQLQueryInsert.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQueryInsert);
+  end;
+
+end;
+
 
 end.

@@ -20,7 +20,8 @@ end;
 procedure fInserirUsuario(Req: THorseRequest; Res: THorseResponse);
 var
   DmGlobal        : TDMGlobal;
-  vNome           : String;
+  vNomeUsuario    : String;
+  vNomeLogin      : String;
   vSenha          : String;
   vCodUsuario     : Integer;
   vBody, vJsonRet : TJsonObject;
@@ -29,13 +30,14 @@ begin
     try
       DmGlobal := TDMGlobal.Create(Nil);
 
-      vBody   := Req.Body<TJSONObject>;
-      vNome  := vBody.GetValue<string>('nome','');
-      vSenha := vBody.GetValue<string>('senha','');
+      vBody        := Req.Body<TJSONObject>;
+      vNomeUsuario := vBody.GetValue<string>('nome_usuario','');
+      vNomeLogin   := vBody.GetValue<string>('login','');
+      vSenha       := vBody.GetValue<string>('senha','');
 
-//      vJsonRet := DMGlobal.InserirUsuario(vNome, vSenha);
+      vJsonRet := DMGlobal.fInserirUsuario(vNomeUsuario, vNomeLogin, vSenha);
 
-      vJsonRet.AddPair('nome', vNome);
+      vJsonRet.AddPair('login', vNomeLogin);
       vJsonRet.AddPair('email', vSenha);
 
       vCodUsuario := vJsonRet.GetValue<Integer>('cod_usuario',0);
