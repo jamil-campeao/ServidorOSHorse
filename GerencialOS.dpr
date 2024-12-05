@@ -8,7 +8,8 @@ uses
   DM.Global in 'DataModule\DM.Global.pas' {DMGlobal: TDataModule},
   uMD5 in 'UnitsTerceiros\uMD5.pas',
   Controllers.Auth in 'Controller\Controllers.Auth.pas',
-  Controllers.Notificacao in 'Controller\Controllers.Notificacao.pas';
+  Controllers.Notificacao in 'Controller\Controllers.Notificacao.pas',
+  Controllers.Cliente in 'Controller\Controllers.Cliente.pas';
 
 {$R *.res}
 

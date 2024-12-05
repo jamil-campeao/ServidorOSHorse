@@ -27,12 +27,17 @@ type
       pLogin: String): TJSONObject;
     function fEditarSenha(pCodUsuario: Integer; pSenha: String): TJSONObject;
     function fListarNotificacoes(pCodUsuario: Integer): TJSONArray;
+    function fListarClientes(pDtUltSincronizacao: String;
+      pPagina: Integer): TJSONArray;
 
     { Public declarations }
   end;
 
 var
   DMGlobal: TDMGlobal;
+
+const
+  cQTD_REG_PAGINA_CLIENTE = 5;
 
 implementation
 
@@ -324,6 +329,34 @@ begin
 
 end;
 
+function TDMGlobal.fListarClientes(pDtUltSincronizacao: String; pPagina: Integer) : TJSONArray;
+var
+  vSQLQuerySelect  : TFDQuery;
+begin
+  if pDtUltSincronizacao = '' then
+    raise Exception.Create('Parâmetro dt_ult_sincronizacao não informado');
+  try
+    vSQLQuerySelect            := TFDQuery.Create(nil);
+    vSQLQuerySelect.Connection := DM;
+
+    vSQLQuerySelect.SQL.Clear;
+    vSQLQuerySelect.SQL.Text := ' SELECT FIRST :FIRST SKIP :SKIP *                       '+
+                                ' FROM CLIENTE                                           '+
+                                ' WHERE CLI_DATA_ULT_ALTERACAO > :CLI_DATA_ULT_ALTERACAO '+
+                                ' ORDER BY 1                                             ';
+
+    vSQLQuerySelect.ParamByName('CLI_DATA_ULT_ALTERACAO').AsString := pDtUltSincronizacao;
+    vSQLQuerySelect.ParamByName('FIRST').AsInteger                 := cQTD_REG_PAGINA_CLIENTE;
+    vSQLQuerySelect.ParamByName('SKIP').AsInteger                  := (pPagina * cQTD_REG_PAGINA_CLIENTE) - cQTD_REG_PAGINA_CLIENTE;
+
+    vSQLQuerySelect.Open;
+    Result := vSQLQuerySelect.ToJSONArray;
+
+  finally
+    FreeAndNil(vSQLQuerySelect);
+  end;
+
+end;
 
 
 end.
