@@ -25,6 +25,7 @@ type
     function fPush(pCodUsuario: Integer; pTokenPush: String) : TJSONObject;
     function fEditarUsuario(pCodUsuario: Integer; pNome,
       pLogin: String): TJSONObject;
+    function fEditarSenha(pCodUsuario: Integer; pSenha: String): TJSONObject;
 
     { Public declarations }
   end;
@@ -234,6 +235,38 @@ begin
   vSQLQuery.Open;
   if vSQLQuery.RecordCount > 0 then
     raise Exception.Create('O login informado está em uso por outra conta de usuário');
+end;
+
+function TDMGlobal.fEditarSenha(pCodUsuario: Integer; pSenha: String) : TJSONObject;
+var
+  vSQLQuery : TFDQuery;
+begin
+  if pSenha.IsEmpty then
+    raise Exception.Create('Informe a nova senha do usuário');
+
+  if pSenha.Length < 5 then
+    raise Exception.Create('A senha deve conter pelo menos 5 caracteres');
+
+  vSQLQuery := TFDQuery.Create(nil);
+  try
+    vsQLQuery.Connection := DM;
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' UPDATE USUARIO                  '+
+                          ' SET USU_SENHA    = :USU_SENHA   '+
+                          ' WHERE USU_CODIGO = :USU_CODIGO  '+
+                          ' RETURNING USU_CODIGO            ';
+
+    vSQLQuery.ParamByName('USU_SENHA').AsString   := fSaltPassword(pSenha);
+    vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+
 end;
 
 end.

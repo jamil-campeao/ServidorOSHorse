@@ -10,6 +10,7 @@ procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure Login(Req: THorseRequest; Res: THorseResponse);
 procedure Push(Req: THorseRequest; Res: THorseResponse);
 procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
+procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -22,6 +23,9 @@ begin
 
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Put('/usuarios', EditarUsuario);
+
+    THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Put('/usuarios/senha', EditarSenha);
 
 end;
 
@@ -152,4 +156,30 @@ begin
     FreeAndNil(DmGlobal);
   end;
 end;
+
+procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal        : TDMGlobal;
+  vSenha          : String;
+  vCodUsuario     : Integer;
+  vBody, vJsonRet : TJsonObject;
+begin
+  try
+    try
+      DmGlobal    := TDMGlobal.Create(Nil);
+      vCodUsuario := fGetUsuarioRequest(Req);
+      vBody       := Req.Body<TJSONObject>;
+      vSenha      := vBody.GetValue<string>('senha','');
+
+      vJsonRet    := DMGlobal.fEditarSenha(vCodUsuario, vSenha);
+
+      Res.Send<TJsonObject>(vJSonRet).Status(200);
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
 end.
