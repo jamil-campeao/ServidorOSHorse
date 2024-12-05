@@ -93,6 +93,9 @@ function TDMGlobal.fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
 var
   vSQLQuery : TFDQuery;
 begin
+  if (pCodUsuario <= 0) or (pSenha = '') then
+    raise Exception.Create('Parâmetro cod_usuário ou senha não informados');
+
   vSQLQuery := TFDQuery.Create(nil);
   try
     vSQLQuery.Connection := DM;
@@ -122,6 +125,12 @@ var
   vSQLQueryInsert : TFDQuery;
   vSQLQuerySelect : TFDQuery;
 begin
+  if (pNomeUsuario = '') or (pLogin = '') or (pSenha = '') then
+    raise Exception.Create('Parâmetros nome, login ou senha não informados');
+
+  if (pSenha.Length < 8) then
+    raise Exception.Create('Senha informada deve conter entre 8 a 20 caracteres');
+
   vSQLQueryInsert := TFDQuery.Create(nil);
   vSQLQuerySelect := TFDQuery.Create(nil);
   try
@@ -244,8 +253,8 @@ begin
   if pSenha.IsEmpty then
     raise Exception.Create('Informe a nova senha do usuário');
 
-  if pSenha.Length < 5 then
-    raise Exception.Create('A senha deve conter pelo menos 5 caracteres');
+  if pSenha.Length < 8 then
+    raise Exception.Create('A senha deve conter entre 8 a 20 caracteres');
 
   vSQLQuery := TFDQuery.Create(nil);
   try
