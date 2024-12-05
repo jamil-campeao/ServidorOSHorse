@@ -5,19 +5,22 @@ interface
 uses Horse, Horse.Jhonson, Horse.CORS, System.SysUtils,
 System.JSON, Horse.JWT, DM.Global, Controllers.Auth;
 
-procedure fRegistrarRotas;
-procedure fInserirUsuario(Req: THorseRequest; Res: THorseResponse);
-procedure fLogin(Req: THorseRequest; Res: THorseResponse);
+procedure RegistrarRotas;
+procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
+procedure Login(Req: THorseRequest; Res: THorseResponse);
+procedure Push(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
-procedure fRegistrarRotas;
+procedure RegistrarRotas;
 begin
-  THorse.Post('/usuarios', fInserirUsuario);
-  THorse.Post('/usuarios/login', fLogin);
+  THorse.Post('/usuarios', InserirUsuario);
+  THorse.Post('/usuarios/login', Login);
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSecret, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Post('/usuarios/push', Push);
 end;
 
-procedure fInserirUsuario(Req: THorseRequest; Res: THorseResponse);
+procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
 var
   DmGlobal        : TDMGlobal;
   vNomeUsuario    : String;
@@ -54,7 +57,33 @@ begin
   end;
 end;
 
-procedure fLogin(Req: THorseRequest; Res: THorseResponse);
+procedure Push(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal        : TDMGlobal;
+  vTokenPush      : String;
+  vCodUsuario     : Integer;
+  vBody, vJsonRet : TJsonObject;
+begin
+  try
+    try
+      DmGlobal := TDMGlobal.Create(Nil);
+
+      vCodUsuario := fGetUsuarioRequest(Req);
+      vBody       := Req.Body<TJSONObject>;
+      vTokenPush  := vBody.GetValue<string>('token_push','');
+
+      vJsonRet := DMGlobal.fPush(vCodUsuario, vTokenPush);
+
+      Res.Send<TJsonObject>(vJSonRet).Status(200);
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
+procedure Login(Req: THorseRequest; Res: THorseResponse);
 var
   DmGlobal        : TDMGlobal;
   vCodUsuario     : Integer;

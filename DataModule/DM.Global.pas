@@ -21,6 +21,7 @@ type
   public
     function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
     function fInserirUsuario(pNomeUsuario, pLogin, pSenha: String): TJsonObject;
+    function fPush(pCodUsuario: Integer; pTokenPush: String) : TJSONObject;
 
     { Public declarations }
   end;
@@ -149,6 +150,33 @@ begin
     FreeAndNil(vSQLQueryInsert);
   end;
 
+end;
+
+function TDMGlobal.fPush(pCodUsuario: Integer; pTokenPush: String) : TJSONObject;
+var
+  vSQLQuery : TFDQuery;
+begin
+  if pTokenPush.IsEmpty then
+    raise Exception.Create('Informe o token_push do usuário');
+  try
+    vSQLQuery := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' UPDATE USUARIO                      '+
+                          ' SET USU_TOKENPUSH = :USU_TOKENPUSH  '+
+                          ' WHERE USU_CODIGO = :USU_CODIGO      '+
+                          ' RETURNING USU_CODIGO                ';
+
+    vSQLQuery.ParamByName('USU_TOKENPUSH').AsString := pTokenPush;
+    vSQLQuery.ParamByName('USU_CODIGO').AsInteger   := pCodUsuario;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
 end;
 
 

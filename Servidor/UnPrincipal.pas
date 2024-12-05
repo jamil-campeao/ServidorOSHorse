@@ -36,7 +36,7 @@ begin
   THorse.Use(Upload);
 
   {Registrar Rotas}
-  Controllers.Usuario.fRegistrarRotas;
+  Controllers.Usuario.RegistrarRotas;
 
 
   THorse.Listen(9000);
