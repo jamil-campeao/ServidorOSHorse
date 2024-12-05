@@ -6,7 +6,8 @@ uses
   UnPrincipal in 'Servidor\UnPrincipal.pas' {frmPrincipal},
   Controllers.Usuario in 'Controller\Controllers.Usuario.pas',
   DM.Global in 'DataModule\DM.Global.pas' {DMGlobal: TDataModule},
-  uMD5 in 'UnitsTerceiros\uMD5.pas';
+  uMD5 in 'UnitsTerceiros\uMD5.pas',
+  Controllers.Auth in 'Controller\Controllers.Auth.pas';
 
 {$R *.res}
 

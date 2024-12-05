@@ -3,7 +3,7 @@ unit Controllers.Usuario;
 interface
 
 uses Horse, Horse.Jhonson, Horse.CORS, System.SysUtils,
-System.JSON, Horse.JWT, DM.Global;
+System.JSON, Horse.JWT, DM.Global, Controllers.Auth;
 
 procedure fRegistrarRotas;
 procedure fInserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -39,11 +39,10 @@ begin
 
       vJsonRet.AddPair('login', vNomeLogin);
 
-      vCodUsuario := vJsonRet.GetValue<Integer>('cod_usuario',0);
+      vCodUsuario := vJsonRet.GetValue<Integer>('usuCodigo',0);
 
       //Gero o token contendo o cod_usuario
-//      vJsonRet.AddPair('token', CriarToken(vCodUsuario));
-
+      vJsonRet.AddPair('token', fCriarToken(vCodUsuario));
 
       Res.Send<TJsonObject>(vJSonRet).Status(201);
 
@@ -77,8 +76,9 @@ begin
       else
       begin
         vCodUsuario := vJsonRet.GetValue<Integer>('cod_usuario',0);
+
         //Gero o token contendo o cod_usuario
-//        vJsonRet.AddPair('token', CriarToken(vCodUsuario));
+        vJsonRet.AddPair('token', fCriarToken(vCodUsuario));
 
         Res.Send<TJsonObject>(vJSonRet).Status(200); //Deu certo o Login
       end;

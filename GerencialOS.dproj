@@ -262,6 +262,7 @@
             <DesignClass>TDataModule</DesignClass>
         </DCCReference>
         <DCCReference Include="UnitsTerceiros\uMD5.pas"/>
+        <DCCReference Include="Controller\Controllers.Auth.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
