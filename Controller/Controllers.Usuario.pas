@@ -38,7 +38,6 @@ begin
       vJsonRet := DMGlobal.fInserirUsuario(vNomeUsuario, vNomeLogin, vSenha);
 
       vJsonRet.AddPair('login', vNomeLogin);
-      vJsonRet.AddPair('email', vSenha);
 
       vCodUsuario := vJsonRet.GetValue<Integer>('cod_usuario',0);
 

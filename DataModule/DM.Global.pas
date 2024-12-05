@@ -8,7 +8,7 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
   FireDAC.Phys.FBDef, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,
   FireDAC.VCLUI.Wait, System.IniFiles, FireDAC.Phys.IBBase, FireDac.DApt,
-  System.JSON, DataSet.Serialize;
+  System.JSON, DataSet.Serialize, uMD5;
 
 type
   TDMGlobal = class(TDataModule)
@@ -101,7 +101,7 @@ begin
                           ' AND USU_SENHA =   :SENHA       ';
 
     vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
-    vSQLQuery.ParamByName('SENHA').AsString       := pSenha;
+    vSQLQuery.ParamByName('SENHA').AsString       := fSaltPassword(pSenha);
 
     vSQLQuery.Open;
 
@@ -138,7 +138,7 @@ begin
     vSQLQueryInsert.ParamByName('USU_CODIGO').AsInteger  := vSQLQuerySelect.FieldByName('USU_CODIGO').AsInteger + 1;
     vSQLQueryInsert.ParamByName('USU_NOME').AsString     := pNomeUsuario;
     vSQLQueryInsert.ParamByName('USU_LOGIN').AsString    := pLogin;
-    vSQLQueryInsert.ParamByName('USU_SENHA').AsString    := pSenha;
+    vSQLQueryInsert.ParamByName('USU_SENHA').AsString    := fSaltPassword(pSenha);
     vSQLQueryInsert.ParamByName('EMP_CODIGO').AsInteger  := 1; {Estou setando fixo temporariamente, para
                                                                 decidir depois como irá ser feito essa parte da empresa}
 

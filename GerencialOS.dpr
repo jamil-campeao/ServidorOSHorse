@@ -5,7 +5,8 @@ uses
   FMX.Forms,
   UnPrincipal in 'Servidor\UnPrincipal.pas' {frmPrincipal},
   Controllers.Usuario in 'Controller\Controllers.Usuario.pas',
-  DM.Global in 'DataModule\DM.Global.pas' {DMGlobal: TDataModule};
+  DM.Global in 'DataModule\DM.Global.pas' {DMGlobal: TDataModule},
+  uMD5 in 'UnitsTerceiros\uMD5.pas';
 
 {$R *.res}
 
