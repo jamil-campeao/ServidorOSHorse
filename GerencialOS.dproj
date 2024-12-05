@@ -256,6 +256,11 @@
             <FormType>fmx</FormType>
         </DCCReference>
         <DCCReference Include="Controller\Controllers.Usuario.pas"/>
+        <DCCReference Include="DataModule\DM.Global.pas">
+            <Form>DMGlobal</Form>
+            <FormType>dfm</FormType>
+            <DesignClass>TDataModule</DesignClass>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
