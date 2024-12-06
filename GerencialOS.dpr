@@ -9,7 +9,9 @@ uses
   uMD5 in 'UnitsTerceiros\uMD5.pas',
   Controllers.Auth in 'Controller\Controllers.Auth.pas',
   Controllers.Notificacao in 'Controller\Controllers.Notificacao.pas',
-  Controllers.Cliente in 'Controller\Controllers.Cliente.pas';
+  Controllers.Cliente in 'Controller\Controllers.Cliente.pas',
+  Controllers.Produto in 'Controller\Controllers.Produto.pas',
+  Controllers.OS in 'Controller\Controllers.OS.pas';
 
 {$R *.res}
 

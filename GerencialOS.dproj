@@ -267,6 +267,8 @@
         <DCCReference Include="Controller\Controllers.Auth.pas"/>
         <DCCReference Include="Controller\Controllers.Notificacao.pas"/>
         <DCCReference Include="Controller\Controllers.Cliente.pas"/>
+        <DCCReference Include="Controller\Controllers.Produto.pas"/>
+        <DCCReference Include="Controller\Controllers.OS.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

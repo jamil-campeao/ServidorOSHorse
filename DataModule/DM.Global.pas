@@ -29,6 +29,8 @@ type
     function fListarNotificacoes(pCodUsuario: Integer): TJSONArray;
     function fListarClientes(pDtUltSincronizacao: String;
       pPagina: Integer): TJSONArray;
+    function fListarOS(pDtUltSincronizacao: String; pCodUsuario,
+      pPagina: Integer): TJSONArray;
 
     { Public declarations }
   end;
@@ -38,7 +40,8 @@ var
 
 const
   cQTD_REG_PAGINA_CLIENTE = 5;
-
+  cQTD_REG_PAGINA_PRODUTO = 5;
+  cQTD_REG_PAGINA_OS      = 5;
 implementation
 
 procedure TDMGlobal.fCarregaConfigDB(pConexao: TFDConnection);
@@ -357,6 +360,57 @@ begin
   end;
 
 end;
+
+function TDMGlobal.fListarOS(pDtUltSincronizacao: String; pCodUsuario, pPagina: Integer) : TJSONArray;
+var
+  vSQLQuerySelect : TFDQuery;
+  vPedidos        : TJsonArray;
+  i               : Integer;
+begin
+  if pDtUltSincronizacao = '' then
+    raise Exception.Create('Parâmetro dt_ult_sincronizacao não informado');
+  try
+    vSQLQuerySelect := TFDQuery.Create(nil);
+    vSQLQuerySelect.Connection := DM;
+
+    vSQLQuerySelect.Active := False;
+    vSQLQuerySelect.SQL.Clear;
+    vSQLQuerySelect.SQL.Text := ' SELECT FIRST :FIRST SKIP :SKIP                             '+
+                                ' OS_CODIGO,                                                 '+
+                                ' CLI_CODIGO,                                                '+
+                                ' OS_DATAABERTURA,                                           '+
+                                ' OS_HORAABERTURA,                                           '+
+                                ' OS_SOLICITACAO,                                            '+
+                                ' OS_SITUACAO,                                               '+
+                                ' OS_TOTALGERAL,                                             '+
+                                ' OS_DATA_ULTIMA_ALTERACAO                                   '+
+                                ' FROM OS                                                    '+
+                                ' WHERE OS_DATA_ULTIMA_ALTERACAO > :OS_DATA_ULTIMA_ALTERACAO '+
+                                ' AND USU_CODIGO = :USU_CODIGO                               '+
+                                ' ORDER BY 1                                                 ';
+
+    vSQLQuerySelect.ParamByName('OS_DATA_ULTIMA_ALTERACAO').AsString := pDtUltSincronizacao;
+    vSQLQuerySelect.ParamByName('FIRST').AsInteger                   := cQTD_REG_PAGINA_OS;
+    vSQLQuerySelect.ParamByName('SKIP').AsInteger                    := (pPagina * cQTD_REG_PAGINA_OS) - cQTD_REG_PAGINA_OS;
+    vSQLQuerySelect.ParamByName('USU_CODIGO').AsInteger              := pCodUsuario;
+
+
+    vSQLQuerySelect.Active := True;
+
+    vPedidos := vSQLQuerySelect.ToJSONArray;
+
+//    for I := 0 to vPedidos.Size - 1 do
+//        (vPedidos[i] as TJSONObject).AddPair('itens', fListarItensPedido(vPedidos[i].GetValue<integer>('cod_pedido', 0), vSQLQuerySelect));
+
+    Result := vPedidos;
+
+  finally
+    FreeAndNil(vSQLQuerySelect);
+  end;
+
+end;
+
+
 
 
 end.
