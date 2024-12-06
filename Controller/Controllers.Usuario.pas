@@ -12,6 +12,7 @@ procedure Push(Req: THorseRequest; Res: THorseResponse);
 procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
 procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
+procedure InativarUsuario(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -30,6 +31,9 @@ begin
 
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Get('/usuarios/horario', ObterDataServidor);
+
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Delete('/usuarios/:cod_usuario', InativarUsuario);
 end;
 
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -189,4 +193,37 @@ procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
 begin
   Res.Send(FormatDateTime('yyyy-mm-dd hh:nn:ss', now)).Status(200);
 end;
+
+procedure InativarUsuario(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal          : TDMGlobal;
+  vCodUsuario       : Integer;
+  vJsonRet          : TJsonObject;
+  vCodUsuarioParam  : Integer;
+begin
+  try
+    try
+      DmGlobal := TDMGlobal.Create(Nil);
+      vCodUsuario := fGetUsuarioRequest(Req);
+
+      try
+        vCodUsuarioParam := Req.Params.Items['cod_usuario'].ToInteger
+      except
+        vCodUsuarioParam := 0;
+      end;
+
+      if vCodUsuario <> vCodUsuarioParam then
+        raise Exception.Create('Operação não permitida');
+
+      vJsonRet := DMGlobal.fInativarUsuario(vCodUsuario);
+
+      Res.Send<TJsonObject>(vJSonRet).Status(200);
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
 end.

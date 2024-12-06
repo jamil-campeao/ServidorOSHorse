@@ -41,6 +41,7 @@ pCliCNPJ, pCliIE, pCliIM, pCliDtNasc, pCliCEP, pCliRazaoSocial, pCliEmp, pCliEmp
 pCidEmpresa: Integer; pCliTipo, pCliSitReceita, pCliDtSit, pCliClass, pCliDtCadastro: String;
 pUsuCodCadastro: Integer; pCliSit, pCliRegime, pCliOBS, pCliSexo: String;
 pCodClienteOficial, pCodUsuario: Integer): TJSONObject;
+    function fInativarUsuario(pCodUsuario: Integer): TJSONObject;
 
     { Public declarations }
   end;
@@ -164,17 +165,18 @@ begin
     vSQLQuerySelect.SQL.Text := ' SELECT MAX(USU_CODIGO) AS USU_CODIGO FROM USUARIO ';
     vSQLQuerySelect.Open;
 
-    vSQLQueryInsert.SQL.Text := ' INSERT INTO USUARIO                                           '+
-                                ' (USU_CODIGO, USU_NOME, USU_LOGIN, USU_SENHA, EMP_CODIGO)      '+
-                                ' VALUES                                                        '+
-                                ' (:USU_CODIGO, :USU_NOME, :USU_LOGIN, :USU_SENHA, :EMP_CODIGO) '+
-                                ' RETURNING USU_CODIGO                                          ';
+    vSQLQueryInsert.SQL.Text := ' INSERT INTO USUARIO                                                           '+
+                                ' (USU_CODIGO, USU_NOME, USU_LOGIN, USU_SENHA, EMP_CODIGO, USU_SITUACAO)        '+
+                                ' VALUES                                                                        '+
+                                ' (:USU_CODIGO, :USU_NOME, :USU_LOGIN, :USU_SENHA, :EMP_CODIGO, :USU_SITUACAO)  '+
+                                ' RETURNING USU_CODIGO                                                          ';
 
-    vSQLQueryInsert.ParamByName('USU_CODIGO').AsInteger  := vSQLQuerySelect.FieldByName('USU_CODIGO').AsInteger + 1;
-    vSQLQueryInsert.ParamByName('USU_NOME').AsString     := pNomeUsuario;
-    vSQLQueryInsert.ParamByName('USU_LOGIN').AsString    := pLogin;
-    vSQLQueryInsert.ParamByName('USU_SENHA').AsString    := fSaltPassword(pSenha);
-    vSQLQueryInsert.ParamByName('EMP_CODIGO').AsInteger  := 1; {Estou setando fixo temporariamente, para
+    vSQLQueryInsert.ParamByName('USU_CODIGO').AsInteger   := vSQLQuerySelect.FieldByName('USU_CODIGO').AsInteger + 1;
+    vSQLQueryInsert.ParamByName('USU_NOME').AsString      := pNomeUsuario;
+    vSQLQueryInsert.ParamByName('USU_LOGIN').AsString     := pLogin;
+    vSQLQueryInsert.ParamByName('USU_SENHA').AsString     := fSaltPassword(pSenha);
+    vSQLQueryInsert.ParamByName('USU_SITUACAO').AsString  := 'Ativo';
+    vSQLQueryInsert.ParamByName('EMP_CODIGO').AsInteger   := 1; {Estou setando fixo temporariamente, para
                                                                 decidir depois como irá ser feito essa parte da empresa}
 
     vSQLQueryInsert.Open;
@@ -690,6 +692,63 @@ begin
     FreeAndNil(vSQLQuery);
   end;
 end;
+
+function TDMGlobal.fInativarUsuario(pCodUsuario: Integer): TJSONObject;
+var
+  vSQLQuery  : TFDQuery;
+begin
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+    DM.StartTransaction;
+    {$REGION 'INATIVA USUARIO'}
+    try
+      vSQLQuery.SQL.Clear;
+      vSQLQuery.SQL.Text := ' UPDATE USUARIO                                          '+
+                            ' SET USU_NOME = :USU_NOME, USU_LOGIN = :USU_LOGIN,       '+
+                            ' USU_SENHA = :USU_SENHA, USU_TOKENPUSH = :USU_TOKENPUSH, '+
+                            ' USU_SITUACAO = :USU_SITUACAO                            '+
+                            ' WHERE USU_SITUACAO = ''Ativo''                          '+
+                            ' AND USU_CODIGO = :USU_CODIGO                            '+
+                            ' RETURNING USU_CODIGO                                    ';
+
+      vSQLQuery.ParamByName('USU_NOME').AsString         := 'Usuário Excluído';
+      vSQLQuery.ParamByName('USU_LOGIN').AsString        := 'Usuário Excluído';
+      vSQLQuery.ParamByName('USU_SENHA').AsString        := 'Usuário Excluído';
+      vSQLQuery.ParamByName('USU_TOKENPUSH').AsString    := 'Usuário Excluído';
+      vSQLQuery.ParamByName('USU_CODIGO').AsInteger      := pCodUsuario;
+      vSQLQuery.ParamByName('USU_SITUACAO').AsString     := 'Inativo';
+
+      vSQLQuery.Open;
+
+      Result := vSQLQuery.ToJSONObject;
+     {$ENDREGION}
+
+      {$REGION 'DELETA NOTIFICAÇÕES'}
+      vSQLQuery.SQL.Clear;
+      vSQLQuery.SQL.Text := ' DELETE FROM NOTIFICACAO         '+
+                            ' WHERE USU_CODIGO = :USU_CODIGO  ';
+
+      vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+
+
+      vSQLQuery.ExecSQL;
+      {$ENDREGION}
+
+      DM.Commit;
+    except on e:Exception do
+      begin
+        DM.Rollback;
+        raise Exception.Create('Erro ao deletar dados do usuário: ' + e.Message);
+      end;
+
+    end;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+
+end;
+
 
 
 end.

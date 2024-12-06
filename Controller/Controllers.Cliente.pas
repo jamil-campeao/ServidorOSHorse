@@ -109,7 +109,6 @@ begin
 
       {"cod_cliente_local": 250, "cod_cliente_oficial": 4500}
       Res.Send<TJsonObject>(vJSonRet).Status(200);
-
     except on e: Exception do
       Res.Send(e.Message).Status(500);
     end;
