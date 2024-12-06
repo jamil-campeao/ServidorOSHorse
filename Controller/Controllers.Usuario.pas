@@ -30,7 +30,6 @@ begin
 
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Get('/usuarios/horario', ObterDataServidor);
-
 end;
 
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
