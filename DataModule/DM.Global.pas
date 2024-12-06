@@ -18,6 +18,10 @@ type
   private
     procedure fCarregaConfigDB(pConexao: TFDConnection);
     procedure fValidaLoginUsuario(pLogin: string; var vSQLQuery: TFDQuery; pEditando: Boolean; pCodUsuario: Integer = 0);
+    function fListarProdutosOS(pCodPedido: Integer;
+      pSQLQuery: TFDQuery): TJsonArray;
+    function fListarServicosOS(pCodPedido: Integer;
+      pSQLQuery: TFDQuery): TJsonArray;
     { Private declarations }
   public
     function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
@@ -364,7 +368,7 @@ end;
 function TDMGlobal.fListarOS(pDtUltSincronizacao: String; pCodUsuario, pPagina: Integer) : TJSONArray;
 var
   vSQLQuerySelect : TFDQuery;
-  vPedidos        : TJsonArray;
+  vOS             : TJsonArray;
   i               : Integer;
 begin
   if pDtUltSincronizacao = '' then
@@ -397,18 +401,64 @@ begin
 
     vSQLQuerySelect.Active := True;
 
-    vPedidos := vSQLQuerySelect.ToJSONArray;
+    vOS := vSQLQuerySelect.ToJSONArray;
 
-//    for I := 0 to vPedidos.Size - 1 do
-//        (vPedidos[i] as TJSONObject).AddPair('itens', fListarItensPedido(vPedidos[i].GetValue<integer>('cod_pedido', 0), vSQLQuerySelect));
+    for I := 0 to vOS.Size - 1 do
+        (vOS[i] as TJSONObject).AddPair('itens_produtos', fListarProdutosOS(vOS[i].GetValue<integer>('osCodigo', 0), vSQLQuerySelect));
 
-    Result := vPedidos;
+    for I := 0 to vOS.Size - 1 do
+        (vOS[i] as TJSONObject).AddPair('itens_servicos', fListarServicosOS(vOS[i].GetValue<integer>('osCodigo', 0), vSQLQuerySelect));
+
+
+    Result := vOS;
 
   finally
     FreeAndNil(vSQLQuerySelect);
   end;
 
 end;
+
+function TDMGlobal.fListarProdutosOS(pCodPedido: Integer; pSQLQuery: TFDQuery): TJsonArray;
+begin
+  pSQLQuery.SQL.Clear;
+  pSQLQuery.SQL.Text := ' SELECT                          ' +
+                        ' PROD_CODIGO,                    ' +
+                        ' PROD_DESCRICAO,                 ' +
+                        ' OSP_QUANTIDADE,                 ' +
+                        ' OSP_VALOR,                      ' +
+                        ' OSP_TOTAL                       ' +
+                        ' FROM OSPRODUTO                  ' +
+                        ' WHERE OS_CODIGO = :OS_CODIGO    ' +
+                        ' ORDER BY 1                      ';
+
+  pSQLQuery.ParamByName('OS_CODIGO').AsInteger := pCodPedido;
+  pSQLQuery.Open;
+
+  Result := pSQLQuery.ToJSONArray;
+
+end;
+
+function TDMGlobal.fListarServicosOS(pCodPedido: Integer; pSQLQuery: TFDQuery): TJsonArray;
+begin
+  pSQLQuery.SQL.Clear;
+  pSQLQuery.SQL.Text := ' SELECT                        ' +
+                        ' OSS_CODIGO,                   ' +
+                        ' SE_CODIGO,                    ' +
+                        ' OSS_DESCRICAO,                ' +
+                        ' OSS_QUANTIDADE,               ' +
+                        ' OSS_VALOR,                    ' +
+                        ' OSS_TOTAL                     ' +
+                        ' FROM OSSERVICO                ' +
+                        ' WHERE OS_CODIGO = :OS_CODIGO  ' +
+                        ' ORDER BY 1                    ';
+
+  pSQLQuery.ParamByName('OS_CODIGO').AsInteger := pCodPedido;
+  pSQLQuery.Open;
+
+  Result := pSQLQuery.ToJSONArray;
+
+end;
+
 
 
 
