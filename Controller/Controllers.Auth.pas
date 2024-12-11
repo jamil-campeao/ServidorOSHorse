@@ -26,8 +26,8 @@ implementation
 
 function fCriarToken(cod_usuario: Integer): String;
 var
-  vJWT: TJWT;
-  vClaims: TMyClaims;
+  vJWT    : TJWT;
+  vClaims : TMyClaims;
 begin
   try
     vJWT    := TJWT.Create;

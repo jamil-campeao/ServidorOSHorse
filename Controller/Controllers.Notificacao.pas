@@ -19,12 +19,12 @@ end;
 
 procedure ListarNotificacoes(Req: THorseRequest; Res: THorseResponse);
 var
-  DmGlobal: TDMGlobal;
-  vCodUsuario: Integer;
+  DmGlobal    : TDMGlobal;
+  vCodUsuario : Integer;
 begin
   try
     try
-      DmGlobal := TDMGlobal.Create(Nil);
+      DmGlobal    := TDMGlobal.Create(Nil);
 
       vCodUsuario := fGetUsuarioRequest(Req);
 

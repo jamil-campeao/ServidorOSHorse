@@ -42,6 +42,12 @@ pCidEmpresa: Integer; pCliTipo, pCliSitReceita, pCliDtSit, pCliClass, pCliDtCada
 pUsuCodCadastro: Integer; pCliSit, pCliRegime, pCliOBS, pCliSexo: String;
 pCodClienteOficial, pCodUsuario: Integer): TJSONObject;
     function fInativarUsuario(pCodUsuario: Integer): TJSONObject;
+    function fInserirEditarOS(pCodUsuario, pCodOSLocal, pFuncCodigo, pCliCodigo: Integer;
+pOSDataAbertura, pOSHoraAbertura, pOSSolicitacao, pOSSituacao, pOSDataEncerramento: String;
+pFpgCodigo :Integer; pOsTotalServicos: Double;
+pUsuCodigo : Integer; pOSTotalProdutos, pOSTotalGeral: Double;
+pEmpCodigo, pUsuCodigoEncerra, pOSCodResponsavelAbertura, pOSCodResponsavelEncerramento, pClasCodigo, pOSSCodigo, pCodOSOficial: Integer;
+pDtUltSincronizacao: String; pProdutos, pServicos, pServicosTerceiros: TJSonArray): TJSONObject;
 
     { Public declarations }
   end;
@@ -748,6 +754,289 @@ begin
   end;
 
 end;
+
+function TDMGlobal.fInserirEditarOS(pCodUsuario, pCodOSLocal, pFuncCodigo, pCliCodigo: Integer;
+pOSDataAbertura, pOSHoraAbertura, pOSSolicitacao, pOSSituacao, pOSDataEncerramento: String;
+pFpgCodigo :Integer; pOsTotalServicos: Double;
+pUsuCodigo : Integer; pOSTotalProdutos, pOSTotalGeral: Double;
+pEmpCodigo, pUsuCodigoEncerra, pOSCodResponsavelAbertura, pOSCodResponsavelEncerramento, pClasCodigo, pOSSCodigo, pCodOSOficial: Integer;
+pDtUltSincronizacao: String; pProdutos, pServicos, pServicosTerceiros: TJSonArray): TJSONObject;
+var
+  vSQLQueryCabecalho : TFDQuery;
+  vSQLQueryDetalhe   : TFDQuery;
+  i                  : Integer;
+  vCodOS             : Integer;
+begin
+  try
+    try
+      DM.StartTransaction;
+
+      vSQLQueryCabecalho := TFDQuery.Create(nil);
+      vSQLQueryDetalhe   := TFDQuery.Create(nil);
+
+      vSQLQueryCabecalho.Connection := DM;
+      vSQLQueryDetalhe.Connection   := DM;
+
+      {$REGION 'CABEÇALHO DA OS'}
+
+      vSQLQueryCabecalho.SQL.Clear;
+
+      if pCodOSOficial = 0 then
+      begin
+        vSQLQueryCabecalho.SQL.Text := ' SELECT MAX(OS_CODIGO) AS OS_CODIGO FROM OS ';
+        vSQLQueryCabecalho.Open;
+
+        vCodOS := vSQLQueryCabecalho.FieldByName('OS_CODIGO').AsInteger;
+
+        vSQLQueryCabecalho.SQL.Text :=  ' INSERT INTO OS                                                                         '+
+                                        ' (OS_CODIGO, FUNC_CODIGO, CLI_CODIGO, OS_DATAABERTURA, OS_HORAABERTURA,                 '+
+                                        ' OS_SOLICITACAO, OS_SITUACAO, OS_DATAENCERRAMENTO, FPG_CODIGO, OS_TOTALSERVICOS,        '+
+                                        ' USU_CODIGO, OS_TOTALPRODUTOS, OS_TOTALGERAL, EMP_CODIGO, USU_CODIGO_ENCERRA,           '+
+                                        ' OS_CODRESPONSAVELABERTURA, OS_CODRESPONSAVELENCERRAMENTO, CLAS_CODIGO, OSS_CODIGO,     '+
+                                        ' OS_CODIGOLOCAL, OS_DATAULTIMAALTERACAO)                                                '+
+                                        ' VALUES                                                                                 '+
+                                        ' (:OS_CODIGO, :FUNC_CODIGO, :CLI_CODIGO, :OS_DATAABERTURA, :OS_HORAABERTURA,            '+
+                                        ' :OS_SOLICITACAO, :OS_SITUACAO, :OS_DATAENCERRAMENTO, :FPG_CODIGO, :OS_TOTALSERVICOS,   '+
+                                        ' :USU_CODIGO, :OS_TOTALPRODUTOS, :OS_TOTALGERAL, :EMP_CODIGO, :USU_CODIGO_ENCERRA,      '+
+                                        ' :OS_CODRESPONSAVELABERTURA, :OS_CODRESPONSAVELENCERRAMENTO, :CLAS_CODIGO, :OSS_CODIGO, '+
+                                        ' :OS_CODIGOLOCAL, :OS_DATAULTIMAALTERACAO)                                              '+
+                                        ' RETURNING OS_CODIGO                                                                    ';
+
+        vSQLQueryCabecalho.ParamByName('OS_CODIGO').AsInteger         := vCodOS + 1;
+        vSQLQueryCabecalho.ParamByName('OS_CODIGOLOCAL').AsInteger    := pCodOSLocal;
+      end
+      else
+      begin
+        vSQLQueryCabecalho.SQL.Text :=  ' UPDATE OS                                                                                                                   '+
+                                        ' SET FUNC_CODIGO = :FUNC_CODIGO, CLI_CODIGO = :CLI_CODIGO, OS_DATAABERTURA = :OS_DATAABERTURA,                               '+
+                                        ' OS_HORAABERTURA = :OS_HORAABERTURA, OS_SOLICITACAO = :OS_SOLICITACAO, OS_SITUACAO = :OS_SITUACAO,                           '+
+                                        ' OS_DATAENCERRAMENTO = :OS_DATAENCERRAMENTO, FPG_CODIGO = :FPG_CODIGO, OS_TOTALSERVICOS = :OS_TOTALSERVICOS,                 '+
+                                        ' USU_CODIGO = :USU_CODIGO, OS_TOTALPRODUTOS = :OS_TOTALPRODUTOS, OS_TOTALGERAL = :OS_TOTALGERAL,                             '+
+                                        ' EMP_CODIGO = :EMP_CODIGO, USU_CODIGO_ENCERRA = :USU_CODIGO_ENCERRA, OS_CODRESPONSAVELABERTURA = :OS_CODRESPONSAVELABERTURA, '+
+                                        ' OS_CODRESPONSAVELENCERRAMENTO = :OS_CODRESPONSAVELENCERRAMENTO, CLAS_CODIGO = :CLAS_CODIGO, OSS_CODIGO = :OSS_CODIGO,       '+
+                                        ' OS_DATAULTIMAALTERACAO = :OS_DATAULTIMAALTERACAO                                                                            '+
+                                        ' WHERE OS_CODIGO = :OS_CODIGO                                                                                                '+
+                                        ' RETURNING OS_CODIGO                                                                                                         ';
+
+        vSQLQueryCabecalho.ParamByName('OS_CODIGO').AsInteger := pCodOSOficial;
+      end;
+
+      vSQLQueryCabecalho.ParamByName('FUNC_CODIGO').AsInteger                    := pFuncCodigo;
+      vSQLQueryCabecalho.ParamByName('CLI_CODIGO').AsInteger                     := pCliCodigo;
+      vSQLQueryCabecalho.ParamByName('OS_SOLICITACAO').AsString                  := pOSSolicitacao;
+      vSQLQueryCabecalho.ParamByName('OS_SITUACAO').AsString                     := pOSSituacao;
+      vSQLQueryCabecalho.ParamByName('OS_TOTALSERVICOS').AsFloat                 := pOsTotalServicos;
+      vSQLQueryCabecalho.ParamByName('OS_TOTALPRODUTOS').AsFloat                 := pOSTotalProdutos;
+      vSQLQueryCabecalho.ParamByName('OS_TOTALGERAL').AsFloat                    := pOSTotalGeral;
+      vSQLQueryCabecalho.ParamByName('EMP_CODIGO').AsInteger                     := pEmpCodigo;
+      vSQLQueryCabecalho.ParamByName('OS_DATAULTIMAALTERACAO').AsString          := pDtUltSincronizacao;
+
+      if pOSDataAbertura <> '' then
+        vSQLQueryCabecalho.ParamByName('OS_DATAABERTURA').AsString               := pOSDataAbertura
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OS_DATAABERTURA').DataType               := ftString;
+        vSQLQueryCabecalho.ParamByName('OS_DATAABERTURA').Clear;
+      end;
+
+      if pOSHoraAbertura <> '' then
+        vSQLQueryCabecalho.ParamByName('OS_HORAABERTURA').AsString               := pOSHoraAbertura
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OS_HORAABERTURA').DataType               := ftString;
+        vSQLQueryCabecalho.ParamByName('OS_HORAABERTURA').Clear;
+      end;
+
+      if pOSDataEncerramento <> '' then
+        vSQLQueryCabecalho.ParamByName('OS_DATAENCERRAMENTO').AsString           := pOSDataEncerramento
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OS_DATAENCERRAMENTO').DataType           := ftString;
+        vSQLQueryCabecalho.ParamByName('OS_DATAENCERRAMENTO').Clear;
+      end;
+
+      if pOSCodResponsavelAbertura <> 0 then
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELABERTURA').AsInteger    := pOSCodResponsavelAbertura
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELABERTURA').DataType     := ftInteger;
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELABERTURA').Clear;
+      end;
+
+      if pOSCodResponsavelEncerramento <> 0 then
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELENCERRAMENTO').AsInteger:= pOSCodResponsavelEncerramento
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELENCERRAMENTO').DataType := ftInteger;
+        vSQLQueryCabecalho.ParamByName('OS_CODRESPONSAVELENCERRAMENTO').Clear;
+      end;
+
+      if pFpgCodigo <> 0 then
+        vSQLQueryCabecalho.ParamByName('FPG_CODIGO').AsInteger                   := pFpgCodigo
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('FPG_CODIGO').DataType                    := ftInteger;
+        vSQLQueryCabecalho.ParamByName('FPG_CODIGO').Clear;
+      end;
+
+      if pOSSCodigo <> 0 then
+        vSQLQueryCabecalho.ParamByName('OSS_CODIGO').AsInteger                   := pOSSCodigo
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('OSS_CODIGO').DataType                    := ftInteger;
+        vSQLQueryCabecalho.ParamByName('OSS_CODIGO').Clear;
+      end;
+
+      if pClasCodigo <> 0 then
+        vSQLQueryCabecalho.ParamByName('CLAS_CODIGO').AsInteger                  := pClasCodigo
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('CLAS_CODIGO').DataType                   := ftInteger;
+        vSQLQueryCabecalho.ParamByName('CLAS_CODIGO').Clear;
+      end;
+
+      if pUsuCodigo <> 0 then
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO').AsInteger                   := pUsuCodigo
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO').DataType                    := ftInteger;
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO').Clear;
+      end;
+
+      if pUsuCodigoEncerra <> 0 then
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO_ENCERRA').AsInteger           := pUsuCodigoEncerra
+      else
+      begin
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO_ENCERRA').DataType            := ftInteger;
+        vSQLQueryCabecalho.ParamByName('USU_CODIGO_ENCERRA').Clear;
+      end;
+
+      vSQLQueryCabecalho.Open;
+
+      pCodOSOficial := vSQLQueryCabecalho.FieldByName('OS_CODIGO').AsInteger;
+
+      Result := vSQLQueryCabecalho.ToJSONObject;
+      {$ENDREGION}
+
+
+      {$REGION 'DETALHES DA OS'}
+
+      {$REGION 'EXCLUSÃO DOS PRODUTOS/SERVICOS/SERVICOSTERCEIROS'}
+      vSQLQueryDetalhe.SQL.Clear;
+
+      vSQLQueryDetalhe.SQL.Text :=    ' DELETE FROM OSPRODUTO        '+
+                                      ' WHERE OS_CODIGO = :OS_CODIGO ';
+
+      vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger := pCodOSOficial;
+      vSQLQueryDetalhe.ExecSQL;
+
+      vSQLQueryDetalhe.SQL.Clear;
+
+      vSQLQueryDetalhe.SQL.Text :=    ' DELETE FROM OSSERVICO        '+
+                                      ' WHERE OS_CODIGO = :OS_CODIGO ';
+
+      vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger := pCodOSOficial;
+      vSQLQueryDetalhe.ExecSQL;
+
+      vSQLQueryDetalhe.SQL.Clear;
+
+      vSQLQueryDetalhe.SQL.Text :=    ' DELETE FROM OSSERVICOTERCEIROS  '+
+                                      ' WHERE OS_CODIGO = :OS_CODIGO    ';
+
+      vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger := pCodOSOficial;
+      vSQLQueryDetalhe.ExecSQL;
+      {$ENDREGION}
+
+      {$REGION 'PRODUTOS'}
+      for I := 0 to pProdutos.Size - 1 do
+      begin
+        vSQLQueryDetalhe.SQL.Clear;
+
+        vSQLQueryDetalhe.SQL.Text :=    ' INSERT INTO OSPRODUTO                                        '+
+                                        ' (OS_CODIGO, PROD_CODIGO, PROD_DESCRICAO, OSP_QUANTIDADE,     '+
+                                        ' OSP_VALOR, OSP_CODIGO, OSP_TOTAL)                            '+
+                                        ' VALUES                                                       '+
+                                        ' (:OS_CODIGO, :PROD_CODIGO, :PROD_DESCRICAO, :OSP_QUANTIDADE, '+
+                                        ' :OSP_VALOR, :OSP_CODIGO, :OSP_TOTAL)                         ';
+
+        vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger       := pCodOSOficial;
+        vSQLQueryDetalhe.ParamByName('OSP_CODIGO').AsInteger      := I + 1;
+        vSQLQueryDetalhe.ParamByName('PROD_CODIGO').AsInteger     := pProdutos[i].GetValue<integer>('prod_codigo',0);
+        vSQLQueryDetalhe.ParamByName('PROD_DESCRICAO').AsString   := pProdutos[i].GetValue<string>('prod_descricao','');
+        vSQLQueryDetalhe.ParamByName('OSP_QUANTIDADE').AsFloat    := pProdutos[i].GetValue<double>('osp_quantidade',0);
+        vSQLQueryDetalhe.ParamByName('OSP_VALOR').AsFloat         := pProdutos[i].GetValue<double>('osp_valor',0);
+        vSQLQueryDetalhe.ParamByName('OSP_TOTAL').AsFloat         := pProdutos[i].GetValue<double>('osp_total',0);
+
+        vSQLQueryDetalhe.ExecSQL;
+      end;
+      {$ENDREGION}
+
+      {$REGION 'SERVICOS'}
+      for I := 0 to pServicos.Size - 1 do
+      begin
+        vSQLQueryDetalhe.SQL.Clear;
+
+        vSQLQueryDetalhe.SQL.Text :=    ' INSERT INTO OSSERVICO                                             '+
+                                        ' (OSS_CODIGO, OS_CODIGO, SE_CODIGO, OSS_DESCRICAO, OSS_VALOR,      '+
+                                        ' OSS_QUANTIDADE, FUNC_CODIGO, OSS_TOTAL)                           '+
+                                        ' VALUES                                                            '+
+                                        ' (:OSS_CODIGO, :OS_CODIGO, :SE_CODIGO, :OSS_DESCRICAO, :OSS_VALOR, '+
+                                        ' :OSS_QUANTIDADE, :FUNC_CODIGO, :OSS_TOTAL)                        ';
+
+        vSQLQueryDetalhe.ParamByName('OSS_CODIGO').AsInteger    := I + 1;
+        vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger     := pCodOSOficial;
+        vSQLQueryDetalhe.ParamByName('SE_CODIGO').AsInteger     := pServicos[i].GetValue<integer>('se_codigo',0);
+        vSQLQueryDetalhe.ParamByName('OSS_DESCRICAO').AsString  := pServicos[i].GetValue<string>('oss_descricao','');
+        vSQLQueryDetalhe.ParamByName('OSS_QUANTIDADE').AsFloat  := pServicos[i].GetValue<double>('oss_quantidade',0);
+        vSQLQueryDetalhe.ParamByName('OSS_VALOR').AsFloat       := pServicos[i].GetValue<double>('oss_valor',0);
+        vSQLQueryDetalhe.ParamByName('OSS_TOTAL').AsFloat       := pServicos[i].GetValue<double>('oss_total',0);
+
+        vSQLQueryDetalhe.ExecSQL;
+      end;
+      {$ENDREGION}
+
+      {$REGION 'SERVICOS TERCEIROS'}
+      if pServicosTerceiros.Size > 1 then
+      begin
+        for I := 0 to pServicosTerceiros.Size - 1 do
+          begin
+            vSQLQueryDetalhe.SQL.Clear;
+
+            vSQLQueryDetalhe.SQL.Text :=    ' INSERT INTO OSSERVICOTERCEIROS                                    '+
+                                            ' (OSST_CODIGO, OS_CODIGO, SE_CODIGO, OST_DESCRICAO, OST_VALOR,     '+
+                                            ' OST_QUANTIDADE, FUNC_CODIGO, OST_TOTAL)                           '+
+                                            ' VALUES                                                            '+
+                                            ' (:OSS_CODIGO, :OS_CODIGO, :SE_CODIGO, :OST_DESCRICAO, :OST_VALOR, '+
+                                            ' :OST_QUANTIDADE, :FUNC_CODIGO, :OST_TOTAL)                        ';
+
+            vSQLQueryDetalhe.ParamByName('OSST_CODIGO').AsInteger    := I + 1;
+            vSQLQueryDetalhe.ParamByName('OS_CODIGO').AsInteger      := pCodOSOficial;
+            vSQLQueryDetalhe.ParamByName('SE_CODIGO').AsInteger      := pServicosTerceiros[i].GetValue<integer>('se_codigo',0);
+            vSQLQueryDetalhe.ParamByName('OST_DESCRICAO').AsString   := pServicosTerceiros[i].GetValue<string>('ost_descricao','');
+            vSQLQueryDetalhe.ParamByName('OST_QUANTIDADE').AsFloat   := pServicosTerceiros[i].GetValue<double>('ost_quantidade',0);
+            vSQLQueryDetalhe.ParamByName('OST_VALOR').AsFloat        := pServicosTerceiros[i].GetValue<double>('ost_valor',0);
+            vSQLQueryDetalhe.ParamByName('OST_TOTAL').AsFloat        := pServicosTerceiros[i].GetValue<double>('ost_total',0);
+
+            vSQLQueryDetalhe.ExecSQL;
+          end;
+      end;
+      {$ENDREGION}
+
+      {$ENDREGION}
+
+      DM.Commit;
+
+    except on e:Exception do
+      begin
+        DM.Rollback;
+        raise Exception.Create('Erro ao inserir ou atualizar OS: ' + e.Message);
+      end;
+    end;
+  finally
+    FreeAndNil(vSQLQueryCabecalho);
+  end;
+end;
+
 
 
 

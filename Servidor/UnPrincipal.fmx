@@ -11,6 +11,7 @@ object frmPrincipal: TfrmPrincipal
   object memo: TMemo
     Touch.InteractiveGestures = [Pan, LongTap, DoubleTap]
     DataDetectorTypes = []
+    ReadOnly = True
     Align = Client
     Size.Width = 640.000000000000000000
     Size.Height = 463.000000000000000000
