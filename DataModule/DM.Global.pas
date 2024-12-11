@@ -52,6 +52,13 @@ pEmpCodigo, pUsuCodigoEncerra, pOSCodResponsavelAbertura, pOSCodResponsavelEncer
 pDtUltSincronizacao: String; pProdutos, pServicos, pServicosTerceiros: TJSonArray): TJSONObject;
     function fListarProdutos(pDtUltSincronizacao: String;
       pPagina: Integer): TJSONArray;
+    function fInserirEditarProduto(pCodigoProdLocal, pGruCodigo,
+      pFabCodigo: Integer; pUniSigla, pProdCodigoBarra, pProdReferencia,
+      pProdDescricao: String; pProdValorCusto, pProdLucro,
+      pProdValorVenda: Double; pProdSituacao: String; pProdValorCompra: Double;
+      pUniSiglaCompra, pProdNCM: String; pProdPesoLiq, pProdPesoBruto: Double;
+      pProdDtUltOS: String; pTipoCodigo: Integer; pProdDtUltAlt, pProdInfAdic,
+      pProdOBS, pProdCEST: String; pCodigoProdOficial: Integer): TJSONObject;
 
     { Public declarations }
   end;
@@ -1100,8 +1107,152 @@ begin
 
 end;
 
+function TDMGlobal.fInserirEditarProduto(pCodigoProdLocal, pGruCodigo, pFabCodigo: Integer;
+pUniSigla, pProdCodigoBarra, pProdReferencia, pProdDescricao: String;
+pProdValorCusto, pProdLucro, pProdValorVenda: Double; pProdSituacao: String;
+pProdValorCompra: Double; pUniSiglaCompra, pProdNCM: String;
+pProdPesoLiq, pProdPesoBruto: Double; pProdDtUltOS: String;
+pTipoCodigo: Integer; pProdDtUltAlt, pProdInfAdic, pProdOBS, pProdCEST: String;
+pCodigoProdOficial: Integer): TJSONObject;
+var
+  vSQLQuery   : TFDQuery;
+  vCodProdAux : Integer;
+begin
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+    vSQLQuery.SQL.Clear;
+
+    if pCodigoProdOficial = 0 then
+    begin
+      vSQLQuery.SQL.Text := ' SELECT MAX(PROD_CODIGO) AS PROD_CODIGO FROM PRODUTO ';
+      vSQLQuery.Open;
+      vCodProdAux := vSQLQuery.FieldByName('PROD_CODIGO').AsInteger;
+
+      vSQLQuery.SQL.Text := ' INSERT INTO PRODUTO                                                                                           '+
+                            ' (PROD_CODIGO, GRU_CODIGO, FAB_CODIGO, UNI_SIGLA, PROD_CODIGO_BARRA, PROD_REFERENCIA, PROD_DESCRICAO,          '+
+                            ' PROD_VALORCUSTO, PROD_LUCRO, PROD_VALORVENDA, PROD_SITUACAO, PROD_VALORCOMPRA, UNI_SIGLACOMPRA,               '+
+                            ' PROD_NCM, PROD_PESOLIQUIDO, PROD_PESOBRUTO, PROD_DTULTIMAOS, PTIPO_CODIGO, PROD_DTULTIMAALTERACAO,            '+
+                            ' PROD_INFADICIONAIS, PROD_OBS, PROD_CEST)                                                                      '+
+                            ' VALUES                                                                                                        '+
+                            ' (:PROD_CODIGO, :GRU_CODIGO, :FAB_CODIGO, :UNI_SIGLA, :PROD_CODIGO_BARRA, :PROD_REFERENCIA, :PROD_DESCRICAO,   '+
+                            ' :PROD_VALORCUSTO, :PROD_LUCRO, :PROD_VALORVENDA, :PROD_SITUACAO, :PROD_VALORCOMPRA, :UNI_SIGLACOMPRA,         '+
+                            ' :PROD_NCM, :PROD_PESOLIQUIDO, :PROD_PESOBRUTO, :PROD_DTULTIMAOS, :PTIPO_CODIGO, :PROD_DTULTIMAALTERACAO,      '+
+                            ' :PROD_INFADICIONAIS, :PROD_OBS, :PROD_CEST)                                                                   '+
+                            ' RETURNING PROD_CODIGO                                                                                         ';
+
+      vSQLQuery.ParamByName('PROD_CODIGO').AsInteger := vCodProdAux + 1;
+    end
+    else
+    begin
+      vSQLQuery.SQL.Text := ' UPDATE PRODUTO                                                                                                                                                  '+
+                            ' SET GRU_CODIGO = :GRU_CODIGO, FAB_CODIGO = :FAB_CODIGO, UNI_SIGLA = :UNI_SIGLA, PROD_CODIGO_BARRA = :PROD_CODIGO_BARRA,                                         '+
+                            ' PROD_REFERENCIA = :PROD_REFERENCIA, PROD_DESCRICAO = :PROD_DESCRICAO, PROD_VALORCUSTO = :PROD_VALORCUSTO, PROD_LUCRO = :PROD_LUCRO,                             '+
+                            ' PROD_VALORVENDA = :PROD_VALORVENDA, PROD_SITUACAO = :PROD_SITUACAO, PROD_VALORCOMPRA = :PROD_VALORCOMPRA, UNI_SIGLACOMPRA = :UNI_SIGLACOMPRA,                   '+
+                            ' PROD_NCM = :PROD_NCM, PROD_PESOLIQUIDO = :PROD_PESOLIQUIDO, PROD_PESOBRUTO = :PROD_PESOBRUTO, PROD_DTULTIMAOS = :PROD_DTULTIMAOS, PTIPO_CODIGO = :PTIPO_CODIGO, '+
+                            ' PROD_DTULTIMAALTERACAO = :PROD_DTULTIMAALTERACAO, PROD_INFADICIONAIS = :PROD_INFADICIONAIS, PROD_OBS = :PROD_OBS, PROD_CEST = :PROD_CEST                        '+
+                            ' WHERE PROD_CODIGO = :PROD_CODIGO                                                                                                                                '+
+                            ' RETURNING PROD_CODIGO                                                                                                                                           ';
+
+      vSQLQuery.ParamByName('PROD_CODIGO').AsInteger := pCodigoProdOficial;
+    end;
+
+    if pGruCodigo <> 0 then
+      vSQLQuery.ParamByName('GRU_CODIGO').AsInteger           := pGruCodigo
+    else
+    begin
+      vSQLQuery.ParamByName('GRU_CODIGO').DataType            := ftInteger;
+      vSQLQuery.ParamByName('GRU_CODIGO').Clear;
+    end;
+
+    if pFabCodigo <> 0 then
+      vSQLQuery.ParamByName('FAB_CODIGO').AsInteger           := pFabCodigo
+    else
+    begin
+      vSQLQuery.ParamByName('FAB_CODIGO').DataType            := ftInteger;
+      vSQLQuery.ParamByName('FAB_CODIGO').Clear;
+    end;
+
+    if pUniSigla <> '' then
+      vSQLQuery.ParamByName('UNI_SIGLA').AsString             := pUniSigla
+    else
+    begin
+      vSQLQuery.ParamByName('UNI_SIGLA').DataType             := ftString;
+      vSQLQuery.ParamByName('UNI_SIGLA').Clear;
+    end;
+
+    if pProdCodigoBarra <> '' then
+      vSQLQuery.ParamByName('PROD_CODIGO_BARRA').AsString     := pProdCodigoBarra
+    else
+    begin
+      vSQLQuery.ParamByName('PROD_CODIGO_BARRA').DataType     := ftString;
+      vSQLQuery.ParamByName('PROD_CODIGO_BARRA').Clear;
+    end;
+
+    if pProdReferencia <> '' then
+      vSQLQuery.ParamByName('PROD_REFERENCIA').AsString       := pProdReferencia
+
+    else
+    begin
+      vSQLQuery.ParamByName('PROD_REFERENCIA').DataType       := ftString;
+      vSQLQuery.ParamByName('PROD_REFERENCIA').Clear;
+    end;
 
 
+    vSQLQuery.ParamByName('PROD_DESCRICAO').AsString          := pProdDescricao;
+    vSQLQuery.ParamByName('PROD_VALORCUSTO').AsFloat          := pProdValorCusto;
+    vSQLQuery.ParamByName('PROD_LUCRO').AsFloat               := pProdLucro;
+    vSQLQuery.ParamByName('PROD_VALORVENDA').AsFloat          := pProdValorVenda;
+    vSQLQuery.ParamByName('PROD_SITUACAO').AsString           := pProdSituacao;
+    vSQLQuery.ParamByName('PROD_VALORCOMPRA').AsFloat         := pProdValorCompra;
+
+    if pUniSiglaCompra <> '' then
+      vSQLQuery.ParamByName('UNI_SIGLACOMPRA').AsString       := pUniSiglaCompra
+    else
+    begin
+      vSQLQuery.ParamByName('UNI_SIGLACOMPRA').DataType       := ftString;
+      vSQLQuery.ParamByName('UNI_SIGLACOMPRA').Clear;
+    end;
+
+    vSQLQuery.ParamByName('PROD_NCM').AsString                := pProdNCM;
+    vSQLQuery.ParamByName('PROD_PESOLIQUIDO').AsFloat         := pProdPesoLiq;
+    vSQLQuery.ParamByName('PROD_PESOBRUTO').AsFloat           := pProdPesoBruto;
+
+    if pProdDtUltOS <> '' then
+      vSQLQuery.ParamByName('PROD_DTULTIMAOS').AsString       := pProdDtUltOS
+    else
+    begin
+      vSQLQuery.ParamByName('PROD_DTULTIMAOS').DataType       := ftString;
+      vSQLQuery.ParamByName('PROD_DTULTIMAOS').Clear;
+    end;
+
+    if pTipoCodigo <> 0 then
+      vSQLQuery.ParamByName('PTIPO_CODIGO').AsInteger         := pTipoCodigo
+    else
+    begin
+      vSQLQuery.ParamByName('PTIPO_CODIGO').DataType          := ftInteger;
+      vSQLQuery.ParamByName('PTIPO_CODIGO').Clear;
+    end;
+
+    if pProdDtUltAlt <> '' then
+      vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').AsString  := pProdDtUltAlt
+    else
+    begin
+      vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').DataType  := ftString;
+      vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').Clear;
+    end;
+
+    vSQLQuery.ParamByName('PROD_INFADICIONAIS').AsString      := pProdInfAdic;
+    vSQLQuery.ParamByName('PROD_OBS').AsString                := pProdOBS;
+    vSQLQuery.ParamByName('PROD_CEST').AsString               := pProdCEST;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+end;
 
 
 end.

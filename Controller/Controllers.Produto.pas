@@ -8,7 +8,7 @@ FMX.Graphics;
 
 procedure RegistrarRotas;
 procedure ListarProdutos(Req: THorseRequest; Res: THorseResponse);
-//procedure InserirEditarProduto(Req: THorseRequest; Res: THorseResponse);
+procedure InserirEditarProduto(Req: THorseRequest; Res: THorseResponse);
 //procedure ListarFoto(Req: THorseRequest; Res: THorseResponse);
 //procedure EditarFoto(Req: THorseRequest; Res: THorseResponse);
 
@@ -19,8 +19,8 @@ begin
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
   .Get('/produtos/sincronizacao', ListarProdutos);
 
-//  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
-//  .Post('/produtos/sincronizacao', InserirEditarProduto);
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
+  .Post('/produtos/sincronizacao', InserirEditarProduto);
 //
 //  THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
 //  .Get('/produtos/foto/:cod_produto', ListarFoto);
@@ -62,40 +62,56 @@ begin
   end;
 end;
 
-//procedure InserirEditarProduto(Req: THorseRequest; Res: THorseResponse);
-//var
-//  DmGlobal: TDMGlobal;
-//  vCodUsuario: Integer;
-//  vBody, vJsonRet : TJsonObject;
-//begin
-//  try
-//    try
-//      DmGlobal    := TDMGlobal.Create(Nil);
-//      vCodUsuario := fGetUsuarioRequest(Req);
-//      vBody       := Req.Body<TJSONObject>;
-//
-//      vJsonRet := DmGlobal.fInserirEditarProduto(vCodUsuario,
-//                                                vbody.GetValue<integer>('cod_produto_local',0),
-//                                                vbody.GetValue<string>('descricao',''),
-//                                                vbody.GetValue<double>('valor',0),
-//                                                vbody.GetValue<double>('qtd_estoque',0),
-//                                                vbody.GetValue<integer>('cod_produto_oficial',0),
-//                                                vbody.GetValue<string>('dt_ult_sincronizacao','')
-//                                                );
-//
-//      vJsonRet.AddPair('cod_produto_local', TJSONNumber.Create(vBody.GetValue<integer>('cod_produto_local',0)));
-//
-//      {"cod_produto_local": 250, "cod_produto_oficial": 4500}
-//      Res.Send<TJsonObject>(vJSonRet).Status(200);
-//
-//    except on e: Exception do
-//      Res.Send(e.Message).Status(500);
-//    end;
-//  finally
-//    FreeAndNil(DmGlobal);
-//  end;
-//end;
-//
+procedure InserirEditarProduto(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal        : TDMGlobal;
+  vCodUsuario     : Integer;
+  vBody, vJsonRet : TJsonObject;
+begin
+  try
+    try
+      DmGlobal    := TDMGlobal.Create(Nil);
+      vCodUsuario := fGetUsuarioRequest(Req);
+      vBody       := Req.Body<TJSONObject>;
+
+      vJsonRet := DmGlobal.fInserirEditarProduto(vbody.GetValue<integer>('cod_produto_local',0),
+                                                 vbody.GetValue<integer>('gru_codigo',0),
+                                                 vbody.GetValue<integer>('fab_codigo',0),
+                                                 vbody.GetValue<string>('uni_sigla',''),
+                                                 vbody.GetValue<string>('prod_codigo_barra',''),
+                                                 vbody.GetValue<string>('prod_referencia',''),
+                                                 vbody.GetValue<string>('prod_descricao',''),
+                                                 vbody.GetValue<double>('prod_valorcusto',0),
+                                                 vbody.GetValue<double>('prod_lucro',0),
+                                                 vbody.GetValue<double>('prod_valorvenda',0),
+                                                 vbody.GetValue<string>('prod_situacao',''),
+                                                 vbody.GetValue<double>('prod_valorcompra',0),
+                                                 vbody.GetValue<string>('uni_siglacompra',''),
+                                                 vbody.GetValue<string>('prod_ncm',''),
+                                                 vbody.GetValue<double>('prod_pesoliquido',0),
+                                                 vbody.GetValue<double>('prod_pesobruto',0),
+                                                 vbody.GetValue<string>('prod_dtultimaos',''),
+                                                 vbody.GetValue<integer>('ptipo_codigo',0),
+                                                 vbody.GetValue<string>('prod_dtultimaalteracao',''),
+                                                 vbody.GetValue<string>('prod_infadicionais',''),
+                                                 vbody.GetValue<string>('prod_obs',''),
+                                                 vbody.GetValue<string>('prod_cest',''),
+                                                 vbody.GetValue<integer>('cod_produto_oficial',0)
+                                                 );
+
+      vJsonRet.AddPair('cod_produto_local', TJSONNumber.Create(vBody.GetValue<integer>('cod_produto_local',0)));
+
+      {"cod_produto_local": 250, "cod_produto_oficial": 4500}
+      Res.Send<TJsonObject>(vJSonRet).Status(200);
+
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
 //procedure ListarFoto(Req: THorseRequest; Res: THorseResponse);
 //var
 //  DmGlobal: TDMGlobal;
