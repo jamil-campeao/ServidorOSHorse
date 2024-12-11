@@ -50,6 +50,8 @@ pFpgCodigo :Integer; pOsTotalServicos: Double;
 pUsuCodigo : Integer; pOSTotalProdutos, pOSTotalGeral: Double;
 pEmpCodigo, pUsuCodigoEncerra, pOSCodResponsavelAbertura, pOSCodResponsavelEncerramento, pClasCodigo, pOSSCodigo, pCodOSOficial: Integer;
 pDtUltSincronizacao: String; pProdutos, pServicos, pServicosTerceiros: TJSonArray): TJSONObject;
+    function fListarProdutos(pDtUltSincronizacao: String;
+      pPagina: Integer): TJSONArray;
 
     { Public declarations }
   end;
@@ -1063,6 +1065,41 @@ begin
     FreeAndNil(vSQLQueryCabecalho);
   end;
 end;
+
+
+function TDMGlobal.fListarProdutos(pDtUltSincronizacao: String; pPagina: Integer) : TJSONArray;
+var
+  vSQLQuery  : TFDQuery;
+begin
+  if pDtUltSincronizacao = '' then
+    raise Exception.Create('Parâmetro dt_ult_sincronizacao não informado');
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' SELECT FIRST :FIRST SKIP :SKIP                                                          '+
+                          ' PROD_CODIGO, PROD_DESCRICAO, GRU_CODIGO, FAB_CODIGO, UNI_SIGLA, UNI_SIGLACOMPRA,        '+
+                          ' PROD_REFERENCIA, PROD_VALORCUSTO, PROD_VALORVENDA, PROD_VALORCOMPRA, PROD_SITUACAO,     '+
+                          ' PROD_NCM, PROD_CEST, PROD_OBS, PROD_PESOLIQUIDO, PROD_PESOBRUTO, PROD_DTULTIMAALTERACAO '+
+                          ' FROM PRODUTO                                                                            '+
+                          ' WHERE PROD_DTULTIMAALTERACAO > :PROD_DTULTIMAALTERACAO                                  '+
+                          ' ORDER BY 1                                                                              ';
+
+    vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').AsString := pDtUltSincronizacao;
+    vSQLQuery.ParamByName('FIRST').AsInteger                 := cQTD_REG_PAGINA_PRODUTO;
+    vSQLQuery.ParamByName('SKIP').AsInteger                  := (pPagina * cQTD_REG_PAGINA_PRODUTO) - cQTD_REG_PAGINA_PRODUTO;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONArray;
+
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+
+end;
+
 
 
 
