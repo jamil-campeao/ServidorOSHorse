@@ -22,6 +22,8 @@ type
       pSQLQuery: TFDQuery): TJsonArray;
     function fListarServicosOS(pCodPedido: Integer;
       pSQLQuery: TFDQuery): TJsonArray;
+    function fListarServicosTerceirosOS(pCodPedido: Integer;
+      pSQLQuery: TFDQuery): TJsonArray;
     { Private declarations }
   public
     function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
@@ -401,13 +403,13 @@ begin
                                 ' OS_SOLICITACAO,                                            '+
                                 ' OS_SITUACAO,                                               '+
                                 ' OS_TOTALGERAL,                                             '+
-                                ' OS_DATA_ULTIMA_ALTERACAO                                   '+
+                                ' OS_DATAULTIMAALTERACAO                                     '+
                                 ' FROM OS                                                    '+
-                                ' WHERE OS_DATA_ULTIMA_ALTERACAO > :OS_DATA_ULTIMA_ALTERACAO '+
+                                ' WHERE OS_DATAULTIMAALTERACAO > :OS_DATAULTIMAALTERACAO     '+
                                 ' AND USU_CODIGO = :USU_CODIGO                               '+
                                 ' ORDER BY 1                                                 ';
 
-    vSQLQuerySelect.ParamByName('OS_DATA_ULTIMA_ALTERACAO').AsString := pDtUltSincronizacao;
+    vSQLQuerySelect.ParamByName('OS_DATAULTIMAALTERACAO').AsString := pDtUltSincronizacao;
     vSQLQuerySelect.ParamByName('FIRST').AsInteger                   := cQTD_REG_PAGINA_OS;
     vSQLQuerySelect.ParamByName('SKIP').AsInteger                    := (pPagina * cQTD_REG_PAGINA_OS) - cQTD_REG_PAGINA_OS;
     vSQLQuerySelect.ParamByName('USU_CODIGO').AsInteger              := pCodUsuario;
@@ -422,6 +424,9 @@ begin
 
     for I := 0 to vOS.Size - 1 do
         (vOS[i] as TJSONObject).AddPair('itens_servicos', fListarServicosOS(vOS[i].GetValue<integer>('osCodigo', 0), vSQLQuerySelect));
+
+    for I := 0 to vOS.Size - 1 do
+        (vOS[i] as TJSONObject).AddPair('itens_servicos_terceiros', fListarServicosTerceirosOS(vOS[i].GetValue<integer>('osCodigo', 0), vSQLQuerySelect));
 
 
     Result := vOS;
@@ -472,6 +477,28 @@ begin
   Result := pSQLQuery.ToJSONArray;
 
 end;
+
+function TDMGlobal.fListarServicosTerceirosOS(pCodPedido: Integer; pSQLQuery: TFDQuery): TJsonArray;
+begin
+  pSQLQuery.SQL.Clear;
+  pSQLQuery.SQL.Text := ' SELECT                        ' +
+                        ' OSST_CODIGO,                  ' +
+                        ' SE_CODIGO,                    ' +
+                        ' OSST_DESCRICAO,               ' +
+                        ' OSST_QUANTIDADE,              ' +
+                        ' OSST_VALOR,                   ' +
+                        ' OSST_TOTAL                    ' +
+                        ' FROM OSSERVICOTERCEIROS       ' +
+                        ' WHERE OS_CODIGO = :OS_CODIGO  ' +
+                        ' ORDER BY 1                    ';
+
+  pSQLQuery.ParamByName('OS_CODIGO').AsInteger := pCodPedido;
+  pSQLQuery.Open;
+
+  Result := pSQLQuery.ToJSONArray;
+
+end;
+
 
 function TDMGlobal.fInserirEditarCliente(pCodClienteLocal, pCidCodigo: Integer;
 pCliNome, pCliEndereco, pCliNumero, pCliBairro, pCliComplemento, pCliEmail, pCliTelefone, pCliCel, pCliCPF, pCliDtUltAlteracao, pCliRG,

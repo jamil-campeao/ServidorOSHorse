@@ -1,6 +1,7 @@
 object frmPrincipal: TfrmPrincipal
   Left = 0
   Top = 0
+  Caption = 'Servidor OS'
   ClientHeight = 480
   ClientWidth = 640
   FormFactor.Width = 320
