@@ -8,13 +8,14 @@ uses
   FireDAC.Stan.Pool, FireDAC.Stan.Async, FireDAC.Phys, FireDAC.Phys.FB,
   FireDAC.Phys.FBDef, FireDAC.FMXUI.Wait, Data.DB, FireDAC.Comp.Client,
   FireDAC.VCLUI.Wait, System.IniFiles, FireDAC.Phys.IBBase, FireDac.DApt,
-  System.JSON, DataSet.Serialize, uMD5;
+  System.JSON, DataSet.Serialize.Config, DataSet.Serialize, uMD5;
 
 type
   TDMGlobal = class(TDataModule)
     DM: TFDConnection;
     DriverLink: TFDPhysFBDriverLink;
     procedure DMBeforeConnect(Sender: TObject);
+    procedure DataModuleCreate(Sender: TObject);
   private
     procedure fCarregaConfigDB(pConexao: TFDConnection);
     procedure fValidaLoginUsuario(pLogin: string; var vSQLQuery: TFDQuery; pEditando: Boolean; pCodUsuario: Integer = 0);
@@ -26,7 +27,7 @@ type
       pSQLQuery: TFDQuery): TJsonArray;
     { Private declarations }
   public
-    function fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
+    function fLogin(pLogin, pSenha: String): TJsonObject;
     function fInserirUsuario(pNomeUsuario, pLogin, pSenha: String): TJsonObject;
     function fPush(pCodUsuario: Integer; pTokenPush: String) : TJSONObject;
     function fEditarUsuario(pCodUsuario: Integer; pNome,
@@ -121,17 +122,23 @@ end;
 
 {$R *.dfm}
 
+procedure TDMGlobal.DataModuleCreate(Sender: TObject);
+begin
+  TDataSetSerializeConfig.GetInstance.CaseNameDefinition := cndLower;
+  DM.Connected := True;
+end;
+
 procedure TDMGlobal.DMBeforeConnect(Sender: TObject);
 begin
   fCarregaConfigDB(DM);
 end;
 
-function TDMGlobal.fLogin(pCodUsuario: Integer; pSenha: String): TJsonObject;
+function TDMGlobal.fLogin(pLogin, pSenha: String): TJsonObject;
 var
   vSQLQuery : TFDQuery;
 begin
-  if (pCodUsuario <= 0) or (pSenha = '') then
-    raise Exception.Create('Parâmetro cod_usuário ou senha não informados');
+  if (pLogin = '') or (pSenha = '') then
+    raise Exception.Create('Parâmetro login ou senha não informados');
 
   vSQLQuery := TFDQuery.Create(nil);
   try
@@ -140,12 +147,13 @@ begin
 
     vSQLQuery.SQL.Text := ' SELECT                         '+
                           ' USU_CODIGO,                    '+
+                          ' USU_NOME,                      '+
                           ' USU_LOGIN                      '+
                           ' FROM USUARIO                   '+
-                          ' WHERE USU_CODIGO = :USU_CODIGO '+
+                          ' WHERE USU_LOGIN = :USU_LOGIN   '+
                           ' AND USU_SENHA =   :SENHA       ';
 
-    vSQLQuery.ParamByName('USU_CODIGO').AsInteger := pCodUsuario;
+    vSQLQuery.ParamByName('USU_LOGIN').AsString   := pLogin;
     vSQLQuery.ParamByName('SENHA').AsString       := fSaltPassword(pSenha);
 
     vSQLQuery.Open;

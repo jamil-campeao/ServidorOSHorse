@@ -47,7 +47,7 @@ var
 begin
   try
     try
-      DmGlobal := TDMGlobal.Create(Nil);
+      DmGlobal     := TDMGlobal.Create(Nil);
 
       vBody        := Req.Body<TJSONObject>;
       vNomeUsuario := vBody.GetValue<string>('nome_usuario','');
@@ -56,9 +56,10 @@ begin
 
       vJsonRet := DMGlobal.fInserirUsuario(vNomeUsuario, vNomeLogin, vSenha);
 
-      vJsonRet.AddPair('login', vNomeLogin);
+      vJsonRet.AddPair('usu_nome', vNomeUsuario);
+      vJsonRet.AddPair('usu_login', vNomeLogin);
 
-      vCodUsuario := vJsonRet.GetValue<Integer>('usuCodigo',0);
+      vCodUsuario := vJsonRet.GetValue<Integer>('usu_codigo',0);
 
       //Gero o token contendo o cod_usuario
       vJsonRet.AddPair('token', fCriarToken(vCodUsuario));
@@ -104,6 +105,7 @@ var
   DmGlobal        : TDMGlobal;
   vCodUsuario     : Integer;
   vSenha          : String;
+  vLogin          : String;
   vBody, vJsonRet : TJsonObject;
 begin
   try
@@ -111,16 +113,16 @@ begin
       DmGlobal     := TDMGlobal.Create(Nil);
 
       vBody        := Req.Body<TJSONObject>;
-      vCodUsuario  := vBody.GetValue<integer>('cod_usuario',0);
+      vLogin       := vBody.GetValue<String>('login','');
       vSenha       := vBody.GetValue<string>('senha','');
 
-      vJsonRet     := DMGlobal.fLogin(vCodUsuario, vSenha);
+      vJsonRet     := DMGlobal.fLogin(vLogin, vSenha);
 
       if vJsonRet.Size = 0 then
-        Res.Send('{"erro": "Usuário ou senha inválida"}').Status(401) // Não deu certo
+        Res.Send('{"erro": "Login ou senha inválida"}').Status(401) // Não deu certo
       else
       begin
-        vCodUsuario := vJsonRet.GetValue<Integer>('cod_usuario',0);
+        vCodUsuario := vJsonRet.GetValue<Integer>('usu_codigo',0);
 
         //Gero o token contendo o cod_usuario
         vJsonRet.AddPair('token', fCriarToken(vCodUsuario));
