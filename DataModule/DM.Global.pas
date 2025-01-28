@@ -39,10 +39,8 @@ type
     function fListarOS(pDtUltSincronizacao: String; pCodUsuario,
       pPagina: Integer): TJSONArray;
     function fInserirEditarCliente(pCodClienteLocal, pCidCodigo: Integer;
-pCliNome, pCliEndereco, pCliNumero, pCliBairro, pCliComplemento, pCliEmail, pCliTelefone, pCliCel, pCliCPF, pCliDtUltAlteracao, pCliRG,
-pCliCNPJ, pCliIE, pCliIM, pCliDtNasc, pCliCEP, pCliRazaoSocial, pCliEmp, pCliEmpFone, pCliEmpEndereco, pCliEmpNumero, pCliEmpBairro, pCliEmpCompl: String;
-pCidEmpresa: Integer; pCliTipo, pCliSitReceita, pCliDtSit, pCliClass, pCliDtCadastro: String;
-pUsuCodCadastro: Integer; pCliSit, pCliRegime, pCliOBS, pCliSexo: String;
+pCliNome, pCliEndereco, pCliNumero, pCliBairro, pCliComplemento, pCliEmail, pCliTelefone, pCliCPF, pCliDtUltAlteracao,
+pCliCNPJ, pCliIE, pCliCEP, pCliRazaoSocial: String; pCliTipo: String;
 pCodClienteOficial, pCodUsuario: Integer): TJSONObject;
     function fInativarUsuario(pCodUsuario: Integer): TJSONObject;
     function fInserirEditarOS(pCodUsuario, pCodOSLocal, pFuncCodigo, pCliCodigo: Integer;
@@ -136,6 +134,7 @@ end;
 function TDMGlobal.fLogin(pLogin, pSenha: String): TJsonObject;
 var
   vSQLQuery : TFDQuery;
+  vSenha, vSenha2: String;
 begin
   if (pLogin = '') or (pSenha = '') then
     raise Exception.Create('Parâmetro login ou senha não informados');
@@ -148,10 +147,11 @@ begin
     vSQLQuery.SQL.Text := ' SELECT                         '+
                           ' USU_CODIGO,                    '+
                           ' USU_NOME,                      '+
-                          ' USU_LOGIN                      '+
+                          ' USU_LOGIN,                     '+
+                          ' USU_SENHA                      '+
                           ' FROM USUARIO                   '+
                           ' WHERE USU_LOGIN = :USU_LOGIN   '+
-                          ' AND USU_SENHA =   :SENHA       ';
+                          ' AND USU_SENHA = :SENHA         ';
 
     vSQLQuery.ParamByName('USU_LOGIN').AsString   := pLogin;
     vSQLQuery.ParamByName('SENHA').AsString       := fSaltPassword(pSenha);
@@ -276,8 +276,8 @@ procedure TDMGlobal.fValidaLoginUsuario(pLogin: string; var vSQLQuery: TFDQuery;
 begin
   //Validação do login
   vSQLQuery.SQL.Clear;
-  vSQLQuery.SQL.Text := ' SELECT USU_CODIGO            ' +
-                        ' FROM USUARIO                 ' +
+  vSQLQuery.SQL.Text := ' SELECT USU_CODIGO            '+
+                        ' FROM USUARIO                 '+
                         ' WHERE USU_LOGIN = :USU_LOGIN ';
   if pEditando then
   begin
@@ -385,9 +385,9 @@ begin
                                 ' WHERE CLI_DATA_ULT_ALTERACAO > :CLI_DATA_ULT_ALTERACAO '+
                                 ' ORDER BY 1                                             ';
 
-    vSQLQuerySelect.ParamByName('CLI_DATA_ULT_ALTERACAO').AsString := pDtUltSincronizacao;
-    vSQLQuerySelect.ParamByName('FIRST').AsInteger                 := cQTD_REG_PAGINA_CLIENTE;
-    vSQLQuerySelect.ParamByName('SKIP').AsInteger                  := (pPagina * cQTD_REG_PAGINA_CLIENTE) - cQTD_REG_PAGINA_CLIENTE;
+    vSQLQuerySelect.ParamByName('CLI_DATA_ULT_ALTERACAO').Value      := pDtUltSincronizacao;
+    vSQLQuerySelect.ParamByName('FIRST').AsInteger                   := cQTD_REG_PAGINA_CLIENTE;
+    vSQLQuerySelect.ParamByName('SKIP').AsInteger                    := (pPagina * cQTD_REG_PAGINA_CLIENTE) - cQTD_REG_PAGINA_CLIENTE;
 
     vSQLQuerySelect.Open;
     Result := vSQLQuerySelect.ToJSONArray;
@@ -518,17 +518,15 @@ end;
 
 
 function TDMGlobal.fInserirEditarCliente(pCodClienteLocal, pCidCodigo: Integer;
-pCliNome, pCliEndereco, pCliNumero, pCliBairro, pCliComplemento, pCliEmail, pCliTelefone, pCliCel, pCliCPF, pCliDtUltAlteracao, pCliRG,
-pCliCNPJ, pCliIE, pCliIM, pCliDtNasc, pCliCEP, pCliRazaoSocial, pCliEmp, pCliEmpFone, pCliEmpEndereco, pCliEmpNumero, pCliEmpBairro, pCliEmpCompl: String;
-pCidEmpresa: Integer; pCliTipo, pCliSitReceita, pCliDtSit, pCliClass, pCliDtCadastro: String;
-pUsuCodCadastro: Integer; pCliSit, pCliRegime, pCliOBS, pCliSexo: String;
+pCliNome, pCliEndereco, pCliNumero, pCliBairro, pCliComplemento, pCliEmail, pCliTelefone, pCliCPF, pCliDtUltAlteracao,
+pCliCNPJ, pCliIE, pCliCEP, pCliRazaoSocial: String; pCliTipo: String;
 pCodClienteOficial, pCodUsuario: Integer): TJSONObject;
 var
   vSQLQuery          : TFDQuery;
   vProxCodigoCliente : Integer;
 begin
   if (pCliTipo <> 'J') and (pCliTipo <> 'F') then
-    raise Exception.Create('parâmetro cli_tipopessoa informado incorretamente');
+    raise Exception.Create('Parâmetro cli_tipopessoa informado incorretamente');
 
   try
     try
@@ -555,33 +553,14 @@ begin
                               '     CLI_COMPLEMENTO,                         '+
                               '     CLI_EMAIL,                               '+
                               '     CLI_TELEFONE,                            '+
-                              '     CLI_CEL,                                 '+
                               '     CLI_CPF,                                 '+
                               '     CLI_DATA_ULT_ALTERACAO,                  '+
-                              '     CLI_RG,                                  '+
                               '     CLI_CNPJ,                                '+
                               '     CLI_IE,                                  '+
-                              '     CLI_IM,                                  '+
-                              '     CLI_DATA_NASC,                           '+
                               '     CLI_CEP,                                 '+
                               '     CLI_RAZAOSOCIAL,                         '+
-                              '     CLI_EMPRESA,                             '+
-                              '     CLI_EMPRESAFONE,                         '+
-                              '     CLI_EMPRESAENDER,                        '+
-                              '     CLI_EMPRESANUMERO,                       '+
-                              '     CLI_EMPRESABAIRRO,                       '+
-                              '     CLI_EMRPESACOMPLE,                       '+
-                              '     CID_EMPRESA,                             '+
                               '     CLI_TIPOPESSOA,                          '+
-                              '     CLI_SITUACAORECEITA,                     '+
-                              '     CLI_DATASITUACAO,                        '+
-                              '     CLI_CLASSIFICACAO,                       '+
-                              '     CLI_DATACADASTRO,                        '+
-                              '     USU_CODIGO_CADASTRO,                     '+
-                              '     CLI_SITUACAO,                            '+
-                              '     CLI_REGIMETRIBUTARIO,                    '+
-                              '     CLI_OBS,                                 '+
-                              '     CLI_SEXO                                 '+
+                              '     USU_CODIGO_CADASTRO                      '+
                               ' ) VALUES (                                   '+
                               '     :CLI_CODIGO,                             '+
                               '     :CID_CODIGO,                             '+
@@ -592,33 +571,14 @@ begin
                               '     :CLI_COMPLEMENTO,                        '+
                               '     :CLI_EMAIL,                              '+
                               '     :CLI_TELEFONE,                           '+
-                              '     :CLI_CEL,                                '+
                               '     :CLI_CPF,                                '+
                               '     :CLI_DATA_ULT_ALTERACAO,                 '+
-                              '     :CLI_RG,                                 '+
                               '     :CLI_CNPJ,                               '+
                               '     :CLI_IE,                                 '+
-                              '     :CLI_IM,                                 '+
-                              '     :CLI_DATA_NASC,                          '+
                               '     :CLI_CEP,                                '+
                               '     :CLI_RAZAOSOCIAL,                        '+
-                              '     :CLI_EMPRESA,                            '+
-                              '     :CLI_EMPRESAFONE,                        '+
-                              '     :CLI_EMPRESAENDER,                       '+
-                              '     :CLI_EMPRESANUMERO,                      '+
-                              '     :CLI_EMPRESABAIRRO,                      '+
-                              '     :CLI_EMRPESACOMPLE,                      '+
-                              '     :CID_EMPRESA,                            '+
                               '     :CLI_TIPOPESSOA,                         '+
-                              '     :CLI_SITUACAORECEITA,                    '+
-                              '     :CLI_DATASITUACAO,                       '+
-                              '     :CLI_CLASSIFICACAO,                      '+
-                              '     :CLI_DATACADASTRO,                       '+
-                              '     :USU_CODIGO_CADASTRO,                    '+
-                              '     :CLI_SITUACAO,                           '+
-                              '     :CLI_REGIMETRIBUTARIO,                   '+
-                              '     :CLI_OBS,                                '+
-                              '     :CLI_SEXO                                '+
+                              '     :USU_CODIGO_CADASTRO                     '+
                               ' )                                            '+
                               ' RETURNING CLI_CODIGO AS CLI_CODIGO_OFICIAL   ';
 
@@ -638,95 +598,98 @@ begin
                               '     CLI_COMPLEMENTO = :CLI_COMPLEMENTO,               '+
                               '     CLI_EMAIL = :CLI_EMAIL,                           '+
                               '     CLI_TELEFONE = :CLI_TELEFONE,                     '+
-                              '     CLI_CEL = :CLI_CEL,                               '+
                               '     CLI_CPF = :CLI_CPF,                               '+
                               '     CLI_DATA_ULT_ALTERACAO = :CLI_DATA_ULT_ALTERACAO, '+
-                              '     CLI_RG = :CLI_RG,                                 '+
                               '     CLI_CNPJ = :CLI_CNPJ,                             '+
                               '     CLI_IE = :CLI_IE,                                 '+
-                              '     CLI_IM = :CLI_IM,                                 '+
-                              '     CLI_DATA_NASC = :CLI_DATA_NASC,                   '+
                               '     CLI_CEP = :CLI_CEP,                               '+
                               '     CLI_RAZAOSOCIAL = :CLI_RAZAOSOCIAL,               '+
-                              '     CLI_EMPRESA = :CLI_EMPRESA,                       '+
-                              '     CLI_EMPRESAFONE = :CLI_EMPRESAFONE,               '+
-                              '     CLI_EMPRESAENDER = :CLI_EMPRESAENDER,             '+
-                              '     CLI_EMPRESANUMERO = :CLI_EMPRESANUMERO,           '+
-                              '     CLI_EMPRESABAIRRO = :CLI_EMPRESABAIRRO,           '+
-                              '     CLI_EMRPESACOMPLE = :CLI_EMRPESACOMPLE,           '+
-                              '     CID_EMPRESA = :CID_EMPRESA,                       '+
                               '     CLI_TIPOPESSOA = :CLI_TIPOPESSOA,                 '+
-                              '     CLI_SITUACAORECEITA = :CLI_SITUACAORECEITA,       '+
-                              '     CLI_DATASITUACAO = :CLI_DATASITUACAO,             '+
-                              '     CLI_CLASSIFICACAO = :CLI_CLASSIFICACAO,           '+
-                              '     CLI_DATACADASTRO = :CLI_DATACADASTRO,             '+
-                              '     USU_CODIGO_CADASTRO = :USU_CODIGO_CADASTRO,       '+
-                              '     CLI_SITUACAO = :CLI_SITUACAO,                     '+
-                              '     CLI_REGIMETRIBUTARIO = :CLI_REGIMETRIBUTARIO,     '+
-                              '     CLI_OBS = :CLI_OBS,                               '+
-                              '     CLI_SEXO = :CLI_SEXO                              '+
+                              '     USU_CODIGO_CADASTRO = :USU_CODIGO_CADASTRO        '+
                               ' WHERE CLI_CODIGO = :CLI_CODIGO                        '+
                               ' RETURNING CLI_CODIGO AS CLI_CODIGO_OFICIAL            ';
 
-        vSQLQuery.ParamByName('CLI_CODIGO').AsInteger         := pCodClienteOficial;
+        vSQLQuery.ParamByName('CLI_CODIGO').AsInteger              := pCodClienteOficial;
       end;
       {$ENDREGION}
+
+      vSQLQuery.ParamByName('CID_CODIGO').DataType                 := ftInteger;
+      vSQLQuery.ParamByName('CLI_CNPJ').DataType                   := ftString;
+      vSQLQuery.ParamByName('CLI_IE').DataType                     := ftString;
+      vSQLQuery.ParamByName('CLI_RAZAOSOCIAL').DataType            := ftString;
+      vSQLQuery.ParamByName('CLI_CPF').DataType                    := ftString;
+      vSQLQuery.ParamByName('CLI_TELEFONE').DataType               := ftString;
+      vSQLQuery.ParamByName('CLI_CEP').DataType                    := ftString;
+      vSQLQuery.ParamByName('CLI_COMPLEMENTO').DataType            := ftString;
+      vSQLQuery.ParamByName('CLI_EMAIL').DataType                  := ftString;
+      vSQLQuery.ParamByName('CLI_NUMERO').DataType                 := ftString;
+      vSQLQuery.ParamByName('CLI_BAIRRO').DataType                 := ftString;
+
+
       if pCliTipo = 'F' then
       begin
-        if pCidCodigo > 0 then
-          vSQLQuery.ParamByName('CID_CODIGO').AsInteger              := pCidCodigo
-        else
-        begin
-          vSQLQuery.ParamByName('CID_CODIGO').DataType               := ftInteger;
-          vSQLQuery.ParamByName('CID_CODIGO').Clear;
-        end;
-
-        vSQLQuery.ParamByName('CLI_NOME').AsString                   := pCliNome;
-        vSQLQuery.ParamByName('CLI_ENDERECO').AsString               := pCliEndereco;
-        vSQLQuery.ParamByName('CLI_NUMERO').AsString                 := pCliNumero;
-        vSQLQuery.ParamByName('CLI_BAIRRO').AsString                 := pCliBairro;
-        vSQLQuery.ParamByName('CLI_COMPLEMENTO').AsString            := pCliComplemento;
-        vSQLQuery.ParamByName('CLI_EMAIL').AsString                  := pCliEmail;
-        vSQLQuery.ParamByName('CLI_TELEFONE').AsString               := pCliTelefone;
-        vSQLQuery.ParamByName('CLI_CEL').AsString                    := pCliCel;
-        vSQLQuery.ParamByName('CLI_CPF').AsString                    := pCliCPF;
-        vSQLQuery.ParamByName('CLI_DATA_ULT_ALTERACAO').AsString     := pCliDtUltAlteracao;
-        vSQLQuery.ParamByName('CLI_RG').AsString                     := pCliRG;
+        vSQLQuery.ParamByName('CLI_CPF').AsString                  := pCliCPF;
+        vSQLQuery.ParamByName('CLI_CNPJ').Clear;
+        vSQLQuery.ParamByName('CLI_IE').Clear;
+        vSQLQuery.ParamByName('CLI_RAZAOSOCIAL').Clear;
       end
       else
       begin
-        vSQLQuery.ParamByName('CLI_CNPJ').AsString                   := pCliCNPJ;
-        vSQLQuery.ParamByName('CLI_IE').AsString                     := pCliIE;
-        vSQLQuery.ParamByName('CLI_IM').AsString                     := pCliIM;
-        vSQLQuery.ParamByName('CLI_DATA_NASC').AsString              := pCliDtNasc;
-        vSQLQuery.ParamByName('CLI_CEP').AsString                    := pCliCEP;
-        vSQLQuery.ParamByName('CLI_RAZAOSOCIAL').AsString            := pCliRazaoSocial;
-        vSQLQuery.ParamByName('CLI_EMPRESA').AsString                := pCliEMP;
-        vSQLQuery.ParamByName('CLI_EMPRESAFONE').AsString            := pCliEMPFone;
-        vSQLQuery.ParamByName('CLI_EMPRESAENDER').AsString           := pCliEMPEndereco;
-        vSQLQuery.ParamByName('CLI_EMPRESANUMERO').AsString          := pCliEMPNumero;
-        vSQLQuery.ParamByName('CLI_EMPRESABAIRRO').AsString          := pCliEmpBairro;
-        vSQLQuery.ParamByName('CLI_EMRPESACOMPLE').AsString          := pCliEMPCompl;
+        vSQLQuery.ParamByName('CLI_CNPJ').AsString                 := pCliCNPJ;
 
-        if pCidEmpresa > 0 then
-          vSQLQuery.ParamByName('CID_EMPRESA').AsInteger               := pCidEmpresa
+        if pCliIE <> '' then
+          vSQLQuery.ParamByName('CLI_IE').AsString                 := pCliIE
         else
-        begin
-          vSQLQuery.ParamByName('CID_EMPRESA').DataType                := ftInteger;
-          vSQLQuery.ParamByName('CID_EMPRESA').Clear;
-        end;
+          vSQLQuery.ParamByName('CLI_IE').Clear;
+
+        if pCliRazaoSocial <> '' then
+          vSQLQuery.ParamByName('CLI_RAZAOSOCIAL').AsString        := pCliRazaoSocial
+        else
+          vSQLQuery.ParamByName('CLI_RAZAOSOCIAL').Clear;
+
+        vSQLQuery.ParamByName('CLI_CPF').Clear;
       end;
 
+      vSQLQuery.ParamByName('CLI_DATA_ULT_ALTERACAO').AsString     := pCliDtUltAlteracao;
+      vSQLQuery.ParamByName('CLI_NOME').AsString                   := pCliNome;
+      vSQLQuery.ParamByName('CLI_ENDERECO').AsString               := pCliEndereco;
       vSQLQuery.ParamByName('CLI_TIPOPESSOA').AsString             := pCliTipo;
-      vSQLQuery.ParamByName('CLI_SITUACAORECEITA').AsString        := pCliSitReceita;
-      vSQLQuery.ParamByName('CLI_DATASITUACAO').AsString           := pCliDtSit;
-      vSQLQuery.ParamByName('CLI_CLASSIFICACAO').AsString          := pCliClass;
-      vSQLQuery.ParamByName('CLI_DATACADASTRO').AsString           := pCliDtCadastro;
       vSQLQuery.ParamByName('USU_CODIGO_CADASTRO').AsInteger       := pCodUsuario;
-      vSQLQuery.ParamByName('CLI_SITUACAO').AsString               := pCliSit;
-      vSQLQuery.ParamByName('CLI_REGIMETRIBUTARIO').AsString       := pCliRegime;
-      vSQLQuery.ParamByName('CLI_OBS').AsString                    := pCliOBS;
-      vSQLQuery.ParamByName('CLI_SEXO').AsString                   := pCliSexo;
+
+      if pCidCodigo > 0 then
+        vSQLQuery.ParamByName('CID_CODIGO').AsInteger              := pCidCodigo
+      else
+        vSQLQuery.ParamByName('CID_CODIGO').Clear;
+
+      if pCliNumero <> '' then
+        vSQLQuery.ParamByName('CLI_NUMERO').AsString               := pCliNumero
+      else
+        vSQLQuery.ParamByName('CLI_NUMERO').Clear;
+
+      if pCliBairro <> '' then
+        vSQLQuery.ParamByName('CLI_BAIRRO').AsString               := pCliBairro
+      else
+        vSQLQuery.ParamByName('CLI_BAIRRO').Clear;
+
+      if pCliComplemento <> '' then
+        vSQLQuery.ParamByName('CLI_COMPLEMENTO').AsString          := pCliComplemento
+      else
+        vSQLQuery.ParamByName('CLI_COMPLEMENTO').Clear;
+
+      if pCliEmail <> '' then
+        vSQLQuery.ParamByName('CLI_EMAIL').AsString                := pCliEmail
+      else
+        vSQLQuery.ParamByName('CLI_EMAIL').Clear;
+
+      if pCliTelefone <> '' then
+        vSQLQuery.ParamByName('CLI_TELEFONE').AsString             := pCliTelefone
+      else
+        vSQLQuery.ParamByName('CLI_TELEFONE').Clear;
+
+      if pCliCEP <> '' then
+        vSQLQuery.ParamByName('CLI_CEP').AsString                  := pCliCEP
+      else
+        vSQLQuery.ParamByName('CLI_CEP').Clear;
 
       vSQLQuery.Open;
       DM.Commit;

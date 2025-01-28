@@ -1,7 +1,7 @@
 object DMGlobal: TDMGlobal
   OnCreate = DataModuleCreate
-  Height = 250
-  Width = 374
+  Height = 158
+  Width = 248
   object DM: TFDConnection
     Params.Strings = (
       'DriverID=FB'

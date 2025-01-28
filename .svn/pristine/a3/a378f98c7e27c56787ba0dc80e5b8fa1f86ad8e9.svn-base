@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2024/12/04 15:15:00.000.536,=C:\Users\Desenvolvimento\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2024/12/04 15:17:47.000.126,C:\Users\Desenvolvimento\Documents\Embarcadero\Studio\Projects\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Servidor\UnPrincipal.pas</Transaction>
+    <Transaction>2024/12/04 15:17:47.000.126,C:\Users\Desenvolvimento\Documents\Embarcadero\Studio\Projects\Unit1.fmx=C:\Temp\ws-Delphi\ProjetoOS\Servidor\UnPrincipal.fmx</Transaction>
+    <Transaction>2024/12/04 15:17:58.000.176,C:\Users\Desenvolvimento\Documents\Embarcadero\Studio\Projects\Project1.dproj=C:\Temp\ws-Delphi\ProjetoOS\GerencialOS.dproj</Transaction>
+    <Transaction>2024/12/04 16:04:06.000.478,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/04 16:04:42.000.683,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.Usuario.pas</Transaction>
+    <Transaction>2024/12/04 16:16:57.000.975,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/04 16:18:12.000.341,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\DataModule\DM.Global.pas</Transaction>
+    <Transaction>2024/12/04 16:18:12.000.341,C:\Temp\ws-Delphi\ProjetoOS\Unit1.dfm=C:\Temp\ws-Delphi\ProjetoOS\DataModule\DM.Global.dfm</Transaction>
+    <Transaction>2024/12/05 11:07:03.000.172,=C:\Temp\ws-Delphi\ProjetoOS\UnitsTerceiros\uMD5.pas</Transaction>
+    <Transaction>2024/12/05 11:14:30.000.731,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 11:14:40.000.875,C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.Auth.pas=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 15:32:26.000.603,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 15:32:38.000.873,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.Notificacao.pas</Transaction>
+    <Transaction>2024/12/05 15:52:07.000.773,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 15:52:20.000.414,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.Cliente.pas</Transaction>
+    <Transaction>2024/12/05 16:37:13.000.639,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 16:37:25.000.960,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.Produto.pas</Transaction>
+    <Transaction>2024/12/05 16:45:00.000.525,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+    <Transaction>2024/12/05 16:45:13.000.823,C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas=C:\Temp\ws-Delphi\ProjetoOS\Controller\Controllers.OS.pas</Transaction>
+    <Transaction>2024/12/11 09:26:13.000.343,=C:\Temp\ws-Delphi\ProjetoOS\Unit1.pas</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile Android="" Android64=""/>
+	</ActiveMobileDevice>
+</BorlandProject>

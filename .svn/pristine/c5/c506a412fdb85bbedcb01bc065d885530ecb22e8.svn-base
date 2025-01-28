@@ -1,0 +1,9 @@
+[GERENCIALOS]
+DriverID=FB
+database=C:\Temp\ws-Delphi\ProjetoOS\DB\GERENCIALOS.FDB
+user_name=SYSDBA
+Password=fW4vaTQj
+Port=3060
+Server=localhost
+Protocol=TCPIP
+VendorLib=C:\Program Files (x86)\Firebird\Firebird_4_0_FarolTI\fbclient.dll
