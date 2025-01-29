@@ -11,7 +11,8 @@ uses
   Controllers.Notificacao in 'Controller\Controllers.Notificacao.pas',
   Controllers.Cliente in 'Controller\Controllers.Cliente.pas',
   Controllers.Produto in 'Controller\Controllers.Produto.pas',
-  Controllers.OS in 'Controller\Controllers.OS.pas';
+  Controllers.OS in 'Controller\Controllers.OS.pas',
+  Controllers.Cidade in 'Controller\Controllers.Cidade.pas';
 
 {$R *.res}
 

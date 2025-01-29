@@ -269,6 +269,7 @@
         <DCCReference Include="Controller\Controllers.Cliente.pas"/>
         <DCCReference Include="Controller\Controllers.Produto.pas"/>
         <DCCReference Include="Controller\Controllers.OS.pas"/>
+        <DCCReference Include="Controller\Controllers.Cidade.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
