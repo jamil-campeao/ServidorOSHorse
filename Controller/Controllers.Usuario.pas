@@ -13,6 +13,8 @@ procedure EditarUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
 procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
 procedure InativarUsuario(Req: THorseRequest; Res: THorseResponse);
+procedure InserirFuncionario(Req: THorseRequest; Res: THorseResponse);
+procedure ListarFuncionario(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -34,6 +36,12 @@ begin
 
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSECRET, THorseJWTConfig.New.SessionClass(TMyClaims)))
                     .Delete('/usuarios/:cod_usuario', InativarUsuario);
+
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSecret, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Post('/usuarios/funcionario', InserirFuncionario);
+
+  THorse.AddCallback(HorseJWT(Controllers.Auth.cSecret, THorseJWTConfig.New.SessionClass(TMyClaims)))
+                    .Get('/usuarios/funcionario', ListarFuncionario);
 end;
 
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -220,6 +228,56 @@ begin
       vJsonRet := DMGlobal.fInativarUsuario(vCodUsuario);
 
       Res.Send<TJsonObject>(vJSonRet).Status(200);
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
+procedure InserirFuncionario(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal         : TDMGlobal;
+  vNomeFuncionario : String;
+  vCodUsuario      : Integer;
+  vBody, vJsonRet  : TJsonObject;
+begin
+  try
+    try
+      DmGlobal         := TDMGlobal.Create(Nil);
+      vBody            := Req.Body<TJSONObject>;
+      vNomeFuncionario := vBody.GetValue<string>('func_nome','');
+      vCodUsuario      := fGetUsuarioRequest(Req);
+
+      vJsonRet := DMGlobal.fInserirFuncionario(vNomeFuncionario, vCodUsuario);
+      vJsonRet.AddPair('func_nome', vNomeFuncionario);
+
+
+      Res.Send<TJsonObject>(vJSonRet).Status(201);
+
+    except on e: Exception do
+      Res.Send(e.Message).Status(500);
+    end;
+  finally
+    FreeAndNil(DmGlobal);
+  end;
+end;
+
+procedure ListarFuncionario(Req: THorseRequest; Res: THorseResponse);
+var
+  DmGlobal         : TDMGlobal;
+  vCodUsuario      : Integer;
+  vJsonRet         : TJSONArray;
+begin
+  try
+    try
+      DmGlobal         := TDMGlobal.Create(Nil);
+      vCodUsuario      := fGetUsuarioRequest(Req);
+
+      vJsonRet := DMGlobal.fListarFuncionario(vCodUsuario);
+      Res.Send<TJSONArray>(vJSonRet).Status(200);
+
     except on e: Exception do
       Res.Send(e.Message).Status(500);
     end;

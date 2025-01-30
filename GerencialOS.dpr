@@ -12,7 +12,8 @@ uses
   Controllers.Cliente in 'Controller\Controllers.Cliente.pas',
   Controllers.Produto in 'Controller\Controllers.Produto.pas',
   Controllers.OS in 'Controller\Controllers.OS.pas',
-  Controllers.Cidade in 'Controller\Controllers.Cidade.pas';
+  Controllers.Cidade in 'Controller\Controllers.Cidade.pas',
+  Controllers.Servico in 'Controller\Controllers.Servico.pas';
 
 {$R *.res}
 
