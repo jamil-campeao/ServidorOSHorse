@@ -58,7 +58,13 @@ pProdValorVenda, pProdEstoque: Double; pCodigoProdOficial: Integer; pProdDtUltAl
     function fListarFoto(pCodProduto: Integer): TMemoryStream;
     function fInserirFuncionario(pNomeFuncionario: String;
       pCodUsuario: Integer): TJSONObject;
-    function fListarFuncionario(pCodUsuario: Integer): TJSONArray;
+    function fListarFuncionarios(pCodUsuario: Integer): TJSONArray;
+    function fListarServicos(pDtUltSincronizacao: String;
+      pPagina: Integer): TJSONArray;
+    function fInserirEditarServico(pCodigoServLocal: Integer; pServDescricao: String;
+pServValor: Currency; pLCCodigo, pCodigoServOficial: Integer; pServDtUltAlteracao: String;
+pEmpID: Integer): TJSONObject;
+    function fListarServicosLC(pPagina: Integer): TJSONArray;
 
     { Public declarations }
   end;
@@ -71,6 +77,8 @@ const
   cQTD_REG_PAGINA_PRODUTO = 5;
   cQTD_REG_PAGINA_OS      = 5;
   cQTD_REG_PAGINA_CIDADE  = 20;
+  cQTD_REG_PAGINA_SERVICO = 5;
+  cQTD_REG_PAGINA_SERVICOLC = 21;
 implementation
 
 procedure TDMGlobal.fCarregaConfigDB(pConexao: TFDConnection);
@@ -978,7 +986,7 @@ begin
                           ' WHERE PROD_DTULTIMAALTERACAO > :PROD_DTULTIMAALTERACAO                                  '+
                           ' ORDER BY 1                                                                              ';
 
-    vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').Value    := pDtUltSincronizacao;
+    vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').AsString := pDtUltSincronizacao;
     vSQLQuery.ParamByName('FIRST').AsInteger                 := cQTD_REG_PAGINA_PRODUTO;
     vSQLQuery.ParamByName('SKIP').AsInteger                  := (pPagina * cQTD_REG_PAGINA_PRODUTO) - cQTD_REG_PAGINA_PRODUTO;
 
@@ -1031,7 +1039,7 @@ begin
     vSQLQuery.ParamByName('PROD_DESCRICAO').AsString            := pProdDescricao;
     vSQLQuery.ParamByName('PROD_ESTOQUE').AsFloat               := pProdEstoque;
     vSQLQuery.ParamByName('PROD_VALORVENDA').AsCurrency         := pProdValorVenda;
-    vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').Value       := pProdDtUltAlteracao;
+    vSQLQuery.ParamByName('PROD_DTULTIMAALTERACAO').AsString    := pProdDtUltAlteracao;
 
     vSQLQuery.Open;
 
@@ -1181,9 +1189,9 @@ begin
 
 end;
 
-function TDMGlobal.fListarFuncionario(pCodUsuario: Integer): TJSONArray;
+function TDMGlobal.fListarFuncionarios(pCodUsuario: Integer): TJSONArray;
 var
-  vSQLQuery      : TFDQuery;
+  vSQLQuery : TFDQuery;
 begin
   try
     Result := nil;
@@ -1207,6 +1215,114 @@ begin
   finally
     FreeAndNil(vSQLQuery);
 
+  end;
+
+end;
+
+function TDMGlobal.fListarServicos(pDtUltSincronizacao: String; pPagina: Integer) : TJSONArray;
+var
+  vSQLQuery  : TFDQuery;
+begin
+  if pDtUltSincronizacao = '' then
+    raise Exception.Create('Parâmetro dt_ult_sincronizacao não informado');
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' SELECT FIRST :FIRST SKIP :SKIP                     '+
+                          ' SE_CODIGO, SE_DESCRICAO, SE_VALOR, LC_CODIGO       '+
+                          ' FROM SERVICO                                       '+
+                          ' WHERE SE_DTULTIMAALTERACAO > :SE_DTULTIMAALTERACAO '+
+                          ' ORDER BY 1                                         ';
+
+    vSQLQuery.ParamByName('SE_DTULTIMAALTERACAO').AsString := pDtUltSincronizacao;
+    vSQLQuery.ParamByName('FIRST').AsInteger               := cQTD_REG_PAGINA_SERVICO;
+    vSQLQuery.ParamByName('SKIP').AsInteger                := (pPagina * cQTD_REG_PAGINA_SERVICO) - cQTD_REG_PAGINA_SERVICO;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONArray;
+
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+
+end;
+
+function TDMGlobal.fInserirEditarServico(pCodigoServLocal: Integer; pServDescricao: String;
+pServValor: Currency; pLCCodigo, pCodigoServOficial: Integer; pServDtUltAlteracao: String;
+pEmpID: Integer): TJSONObject;
+var
+  vSQLQuery   : TFDQuery;
+  vCodServAux : Integer;
+begin
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+    vSQLQuery.SQL.Clear;
+
+    if pCodigoServOficial = 0 then
+    begin
+      vSQLQuery.SQL.Text := ' SELECT MAX(SE_CODIGO) AS SE_CODIGO FROM SERVICO ';
+      vSQLQuery.Open;
+      vCodServAux := vSQLQuery.FieldByName('SE_CODIGO').AsInteger;
+
+      vSQLQuery.SQL.Text := ' INSERT INTO SERVICO                                                                '+
+                            ' (SE_CODIGO, SE_DESCRICAO, SE_VALOR, LC_CODIGO, SE_DTULTIMAALTERACAO, EMP_ID)       '+
+                            ' VALUES                                                                             '+
+                            ' (:SE_CODIGO, :SE_DESCRICAO, :SE_VALOR, :LC_CODIGO, :SE_DTULTIMAALTERACAO, :EMP_ID) '+
+                            ' RETURNING SE_CODIGO                                                                ';
+
+      vSQLQuery.ParamByName('SE_CODIGO').AsInteger := vCodServAux + 1;
+      vSQLQuery.ParamByName('EMP_ID').AsInteger    := pEmpID;
+    end
+    else
+    begin
+      vSQLQuery.SQL.Text := ' UPDATE SERVICO                                                                 '+
+                            ' SET SE_DESCRICAO = :SE_DESCRICAO, SE_VALOR= :SE_VALOR, LC_CODIGO = :LC_CODIGO, '+
+                            ' SE_DTULTIMAALTERACAO = :SE_DTULTIMAALTERACAO                                   '+
+                            ' WHERE SE_CODIGO = :SE_CODIGO                                                   '+
+                            ' RETURNING SE_CODIGO                                                            ';
+
+      vSQLQuery.ParamByName('SE_CODIGO').AsInteger := pCodigoServOficial;
+    end;
+
+    vSQLQuery.ParamByName('SE_DESCRICAO').AsString            := pServDescricao;
+    vSQLQuery.ParamByName('LC_CODIGO').AsInteger              := pLCCodigo;
+    vSQLQuery.ParamByName('SE_VALOR').AsCurrency              := pServValor;
+    vSQLQuery.ParamByName('SE_DTULTIMAALTERACAO').AsString    := pServDtUltAlteracao;
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONObject;
+  finally
+    FreeAndNil(vSQLQuery);
+  end;
+end;
+
+function TDMGlobal.fListarServicosLC(pPagina: Integer) : TJSONArray;
+var
+  vSQLQuery  : TFDQuery;
+begin
+  try
+    vSQLQuery            := TFDQuery.Create(nil);
+    vsQLQuery.Connection := DM;
+
+    vSQLQuery.SQL.Clear;
+    vSQLQuery.SQL.Text := ' SELECT FIRST :FIRST SKIP :SKIP      '+
+                          ' NFSS_CODIGO, NFSS_DESCRICAO         '+
+                          ' FROM NFSSERVICO                     '+
+                          ' ORDER BY 1                          ';
+
+    vSQLQuery.ParamByName('FIRST').AsInteger := cQTD_REG_PAGINA_SERVICOLC;
+    vSQLQuery.ParamByName('SKIP').AsInteger  := (pPagina * cQTD_REG_PAGINA_SERVICOLC) - cQTD_REG_PAGINA_SERVICOLC;
+
+    vSQLQuery.Open;
+
+    Result := vSQLQuery.ToJSONArray;
+
+  finally
+    FreeAndNil(vSQLQuery);
   end;
 
 end;

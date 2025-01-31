@@ -14,7 +14,7 @@ procedure EditarSenha(Req: THorseRequest; Res: THorseResponse);
 procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
 procedure InativarUsuario(Req: THorseRequest; Res: THorseResponse);
 procedure InserirFuncionario(Req: THorseRequest; Res: THorseResponse);
-procedure ListarFuncionario(Req: THorseRequest; Res: THorseResponse);
+procedure ListarFuncionarios(Req: THorseRequest; Res: THorseResponse);
 
 implementation
 
@@ -41,7 +41,7 @@ begin
                     .Post('/usuarios/funcionario', InserirFuncionario);
 
   THorse.AddCallback(HorseJWT(Controllers.Auth.cSecret, THorseJWTConfig.New.SessionClass(TMyClaims)))
-                    .Get('/usuarios/funcionario', ListarFuncionario);
+                    .Get('/usuarios/funcionario', ListarFuncionarios);
 end;
 
 procedure InserirUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -201,7 +201,7 @@ end;
 
 procedure ObterDataServidor(Req: THorseRequest; Res: THorseResponse);
 begin
-  Res.Send(FormatDateTime('yyyy-mm-dd hh:nn:ss', now)).Status(200);
+  Res.Send(FormatDateTime('dd.mm.yyyy hh:nn', now)).Status(200);
 end;
 
 procedure InativarUsuario(Req: THorseRequest; Res: THorseResponse);
@@ -264,7 +264,7 @@ begin
   end;
 end;
 
-procedure ListarFuncionario(Req: THorseRequest; Res: THorseResponse);
+procedure ListarFuncionarios(Req: THorseRequest; Res: THorseResponse);
 var
   DmGlobal         : TDMGlobal;
   vCodUsuario      : Integer;
@@ -275,7 +275,7 @@ begin
       DmGlobal         := TDMGlobal.Create(Nil);
       vCodUsuario      := fGetUsuarioRequest(Req);
 
-      vJsonRet := DMGlobal.fListarFuncionario(vCodUsuario);
+      vJsonRet := DMGlobal.fListarFuncionarios(vCodUsuario);
       Res.Send<TJSONArray>(vJSonRet).Status(200);
 
     except on e: Exception do

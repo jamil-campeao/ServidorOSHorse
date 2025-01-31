@@ -25,7 +25,7 @@ implementation
 
 uses Horse, Horse.Jhonson, Horse.CORS, HORSE.OctetStream, HORSE.Upload,
 Controllers.Usuario, Controllers.Notificacao, Controllers.Cliente,
-Controllers.OS, Controllers.Produto, Controllers.Cidade;
+Controllers.OS, Controllers.Produto, Controllers.Cidade, Controllers.Servico;
 
 {$R *.fmx}
 
@@ -43,7 +43,7 @@ begin
   Controllers.OS.RegistrarRotas;
   Controllers.Produto.RegistrarRotas;
   Controllers.Cidade.RegistrarRotas;
-
+  Controllers.Servico.RegistrarRotas;
 
 
   THorse.Listen(9000);
